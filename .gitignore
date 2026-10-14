@@ -1,0 +1,14 @@
+.gradle/
+.kotlin/
+build/
+run/
+run-data/
+runs/
+out/
+mcmodsrepo/
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+bin/
