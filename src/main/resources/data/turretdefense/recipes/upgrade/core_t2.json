@@ -1,0 +1,25 @@
+{
+  "type": "turretdefense:upgrade",
+  "machine": "core",
+  "from_tier": 1,
+  "materials": [
+    {
+      "ingredient": {
+        "tag": "forge:storage_blocks/iron"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "tag": "forge:storage_blocks/redstone"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "forge:gems/diamond"
+      },
+      "count": 2
+    }
+  ]
+}

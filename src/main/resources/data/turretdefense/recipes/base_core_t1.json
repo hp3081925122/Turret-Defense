@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IRI",
+    "IFR",
+    " DI"
+  ],
+  "key": {
+    "I": {
+      "tag": "forge:storage_blocks/iron"
+    },
+    "R": {
+      "tag": "forge:storage_blocks/redstone"
+    },
+    "D": {
+      "tag": "forge:gems/diamond"
+    },
+    "F": {
+      "tag": "forge:furnaces"
+    }
+  },
+  "result": {
+    "item": "turretdefense:base_core_t1",
+    "count": 1
+  }
+}

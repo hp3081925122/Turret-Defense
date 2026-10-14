@@ -1,0 +1,25 @@
+{
+  "type": "turretdefense:upgrade",
+  "machine": "base",
+  "from_tier": 3,
+  "materials": [
+    {
+      "ingredient": {
+        "tag": "forge:ingots/netherite"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "forge:gems/diamond"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "tag": "forge:components/turret_core"
+      },
+      "count": 1
+    }
+  ]
+}

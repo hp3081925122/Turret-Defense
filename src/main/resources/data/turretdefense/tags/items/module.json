@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "turretdefense:module_damage_amp_1",
+    "turretdefense:module_fire_rate_1",
+    "turretdefense:module_shield_boost_1",
+    "turretdefense:module_armor_plate",
+    "turretdefense:module_target_priority",
+    "turretdefense:module_energy_saver_1",
+    "turretdefense:module_self_destruct",
+    "turretdefense:module_overload_core"
+  ]
+}

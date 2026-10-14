@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "tier=1": {
+      "model": "turretdefense:block/base_core_t1"
+    },
+    "tier=2": {
+      "model": "turretdefense:block/base_core_t2"
+    },
+    "tier=3": {
+      "model": "turretdefense:block/base_core_t3"
+    },
+    "tier=4": {
+      "model": "turretdefense:block/base_core_t4"
+    },
+    "tier=5": {
+      "model": "turretdefense:block/base_core_t5"
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "turretdefense:ammo_grenade",
+    "turretdefense:ammo_he_grenade",
+    "turretdefense:ammo_decider",
+    "turretdefense:ammo_finality"
+  ]
+}

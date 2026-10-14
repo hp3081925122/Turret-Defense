@@ -1,0 +1,31 @@
+{
+  "type": "turretdefense:upgrade",
+  "machine": "core",
+  "from_tier": 4,
+  "materials": [
+    {
+      "ingredient": {
+        "tag": "forge:storage_blocks/netherite"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "forge:storage_blocks/redstone"
+      },
+      "count": 32
+    },
+    {
+      "ingredient": {
+        "tag": "forge:gems/diamond"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "tag": "forge:nether_stars"
+      },
+      "count": 1
+    }
+  ]
+}

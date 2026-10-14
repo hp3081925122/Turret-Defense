@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "turretdefense:ammo_pulse_core",
+    "turretdefense:ammo_hv_particle_clip",
+    "turretdefense:ammo_he_grenade",
+    "turretdefense:ammo_hv_arc_cell",
+    "turretdefense:ammo_finality"
+  ]
+}

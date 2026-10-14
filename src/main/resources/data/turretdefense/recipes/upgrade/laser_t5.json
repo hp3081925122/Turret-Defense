@@ -1,0 +1,25 @@
+{
+  "type": "turretdefense:upgrade",
+  "machine": "laser",
+  "from_tier": 4,
+  "materials": [
+    {
+      "ingredient": {
+        "tag": "forge:ingots/netherite"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "forge:gems/diamond"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "tag": "forge:gems/amethyst"
+      },
+      "count": 2
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="aui-viewport" content="mode=browser"><meta name="aui-font-mode" content="web"></head><body><div id="alert" style="position: absolute; top: 8px; left: 8px; padding: 6px; color: #ffd77a; background-color: #282d35; font-size: 12px;"></div><script>
+// HUD 不拦截鼠标，文档移除时清理定时器。
+document.addEventListener('DOMContentLoaded', function () { var element = document.getElementById('alert'); var timer = setInterval(function () { element.textContent = String(TurretDefense.getAlert()); }, 200); document.addEventListener('unload', function () { clearInterval(timer); }); });
+</script></body></html>

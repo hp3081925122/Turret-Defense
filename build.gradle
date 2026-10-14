@@ -58,6 +58,8 @@ minecraft {
             workingDirectory project.file('run')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
 
             mods {
                 "${project.mod_id}" {
@@ -75,6 +77,7 @@ minecraft {
         }
 
         gameTestServer {
+            workingDirectory file('D:/AI临时文件/turret-defense-dev/gametest-server')
             property 'forge.enabledGameTestNamespaces', project.mod_id
         }
 
@@ -92,8 +95,12 @@ dependencies {
     implementation "thedarkcolour:kotlinforforge:${project.kff_version}"
     implementation fg.deobf("com.sighs:ApricityUI-forge-1.20.1:${project.apricityui_version}")
     implementation fg.deobf("dev.latvian.mods:kubejs-forge:${project.kubejs_version}")
+    // Forge 开发运行需要将传递前置也登记为反混淆的模组依赖。
+    implementation fg.deobf("dev.latvian.mods:rhino-forge:2001.2.2-build.17")
+    implementation fg.deobf("dev.architectury:architectury-forge:9.1.12")
     compileOnly fg.deobf("mezz.jei:jei-1.20.1-forge-api:${project.jei_version}")
-    runtimeOnly fg.deobf("mezz.jei:jei-1.20.1-forge:${project.jei_version}")
+    compileOnly fg.deobf("mezz.jei:jei-1.20.1-common-api:${project.jei_version}")
+    if (!project.hasProperty('withoutJei')) runtimeOnly fg.deobf("mezz.jei:jei-1.20.1-forge:${project.jei_version}")
 }
 
 // 统一 Kotlin、Java 和资源输出目录，满足 KFF 开发环境要求。
@@ -130,6 +137,8 @@ tasks.named('processResources', ProcessResources).configure {
 }
 
 tasks.named('jar', Jar).configure {
+    exclude 'com/turretdefense/gametest/**'
+    exclude 'data/turretdefense/structures/gametest_*.nbt'
     manifest {
         attributes([
                 'Specification-Title': project.mod_id,

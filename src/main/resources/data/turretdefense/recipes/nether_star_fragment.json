@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "tag": "forge:nether_stars"
+    }
+  ],
+  "result": {
+    "item": "turretdefense:nether_star_fragment",
+    "count": 9
+  }
+}

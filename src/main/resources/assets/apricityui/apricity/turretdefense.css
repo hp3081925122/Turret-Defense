@@ -1,0 +1,14 @@
+/* 页面样式仅作用于本模组根元素，不影响其他 AUI 页面。 */
+#turret_defense { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; color: #eeeeee; font-size: 11px; }
+#turret_defense .panel { width: 510px; max-height: 94%; overflow-y: auto; padding: 12px; background-color: #282d35; border: 2px solid #788895; }
+#turret_defense h1 { font-size: 17px; margin-bottom: 7px; color: #7fdbd0; }
+#turret_defense .row { display: flex; gap: 5px; align-items: center; margin-top: 5px; }
+#turret_defense .head_row { display: grid; grid-template-columns: 20px 240px 45px 22px 100px; gap: 3px; margin-top: 3px; }
+#turret_defense .hint { font-size: 9px; color: #bfc9d4; margin: 4px 0px; }
+#turret_defense button { background-color: #4a586a; color: #ffffff; padding: 3px; border: 1px solid #8994a2; font-size: 10px; }
+#turret_defense input { width: 220px; height: 18px; background-color: #171a20; color: #eeeeee; border: 1px solid #8994a2; }
+#turret_defense .slot_grid { display: grid; grid-template-columns: 18px 18px 18px 18px 18px 18px 18px 18px 18px; gap: 1px; margin: 4px 0px; }
+#turret_defense .slot_row { display: flex; gap: 1px; margin: 4px 0px; }
+#turret_defense slot { width: 18px; height: 18px; background-color: #424956; border: 1px solid #8994a2; }
+#turret_defense #player { margin-top: 4px; }
+#turret_defense #bases_list { max-height: 80px; overflow-y: auto; white-space: pre-wrap; font-size: 9px; }

@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "turretdefense:ammo_iron_slug",
+    "turretdefense:ammo_particle_clip",
+    "turretdefense:ammo_grenade",
+    "turretdefense:ammo_arc_cell",
+    "turretdefense:ammo_decider"
+  ]
+}

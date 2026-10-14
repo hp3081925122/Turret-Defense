@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "turretdefense:module_self_destruct",
+    "turretdefense:module_overload_core"
+  ]
+}
