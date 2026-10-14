@@ -30,7 +30,7 @@ object UiNetwork {
     private data class Viewer(val player: ServerPlayer,val position: BlockPos,val menu: AbstractContainerMenu,var nextUpdate: Long = 0,var lastAction: Long = Long.MIN_VALUE/2)
     private val viewers = mutableMapOf<UUID,Viewer>()
     val gson = Gson()
-    val channel = NetworkRegistry.newSimpleChannel(ResourceLocation(TurretDefense.MOD_ID,"ui"),{ "1" },{ it == "1" },{ it == "1" })
+    val channel = NetworkRegistry.newSimpleChannel(ResourceLocation.fromNamespaceAndPath(TurretDefense.MOD_ID,"ui"),{ "1" },{ it == "1" },{ it == "1" })
     fun register() {
         channel.messageBuilder(StatePacket::class.java,0,NetworkDirection.PLAY_TO_CLIENT)
             .encoder { packet,buffer -> buffer.writeUtf(packet.json,131072) }.decoder { StatePacket(it.readUtf(131072)) }

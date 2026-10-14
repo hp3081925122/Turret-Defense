@@ -23,8 +23,12 @@ object ModContent {
     val CORE = BLOCKS.register("base_core") { BaseCoreBlock() }
     val BASE = BLOCKS.register("turret_base") { TurretBaseBlock() }
     val HEADS: Map<TurretKind,RegistryObject<TurretHeadBlock>> = TurretKind.ALL.associateWith { kind -> BLOCKS.register("${kind.id}_head") { TurretHeadBlock(kind) } }
+    // 模组没有原版数据修复器类型，Forge 注册的方块实体按此构建接口传空类型。
+    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     val CORE_BE = ENTITIES.register("base_core") { BlockEntityType.Builder.of(::BaseCoreBlockEntity,CORE.get()).build(null) }
+    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     val BASE_BE = ENTITIES.register("turret_base") { BlockEntityType.Builder.of(::TurretBaseBlockEntity,BASE.get()).build(null) }
+    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     val HEAD_BE = ENTITIES.register("turret_head") { BlockEntityType.Builder.of(::TurretHeadBlockEntity,*HEADS.values.map { it.get() }.toTypedArray()).build(null) }
     val ALL_ITEMS = linkedMapOf<String,RegistryObject<out Item>>()
     init {

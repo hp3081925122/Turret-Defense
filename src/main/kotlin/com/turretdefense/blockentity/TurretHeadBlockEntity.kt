@@ -62,7 +62,7 @@ class TurretHeadBlockEntity(pos: BlockPos,state: BlockState) : MachineBlockEntit
         base?.modules?.forEach { stats = it.multiplyStats(stats) }
         val core = base?.core
         val projection = if (core?.isRemoved == false && core.powerState >= 2) (core.stats.projection*Config.projectionMultiplier.get()).roundToInt() else 0
-        effectiveStats = stats.copy(health=stats.health*Config.healthMultiplier.get(),shield=((stats.shield+projection)*Config.shieldMultiplier.get()).roundToInt(),damage=stats.damage*Config.damageMultiplier.get(),range=min(stats.range,core?.stats?.range ?: stats.range),jumpRange=stats.jumpRange*Config.arcDistance.get())
+        effectiveStats = stats.copy(health=stats.health*Config.healthMultiplier.get(),shield=((stats.shield+projection)*Config.shieldMultiplier.get()).roundToInt(),damage=stats.damage*Config.damageMultiplier.get(),range=min(stats.range,core?.scanRadius ?: stats.range),jumpRange=stats.jumpRange*Config.arcDistance.get())
         if (!initialized) { health = effectiveStats.health; shieldLayers = effectiveStats.shield; initialized = true }
         else { health = min(health,effectiveStats.health); shieldLayers = min(shieldLayers,effectiveStats.shield) }
         setChanged()
@@ -79,12 +79,14 @@ class TurretHeadBlockEntity(pos: BlockPos,state: BlockState) : MachineBlockEntit
     private fun resolveBase(dropIfMissing: Boolean = false) {
         val world = level as? ServerLevel ?: return
         val basePos = blockPos.relative(facing)
-        if (!world.hasChunkAt(basePos)) return
+        if (world.chunkSource.getChunkNow(basePos.x shr 4,basePos.z shr 4) == null) return
         val base = world.getBlockEntity(basePos) as? TurretBaseBlockEntity
         if (base != null) base.attachHead(facing.opposite,this) else if (dropIfMissing) dropOrphan()
     }
     fun acceptThreats(value: ThreatSnapshot) { snapshot = value }
     fun configurePriority(value: String,type: EntityType<*>? = null) { priority = value; targetType = type; target = null; setChanged() }
+    // 原版仍通过此生命周期入口更新已有方块实体，保留入口才能刷新缓存并重新绑定。
+    @Suppress("DEPRECATION","OVERRIDE_DEPRECATION")
     override fun setBlockState(state: BlockState) {
         val previous = blockState
         if (state == previous) { super.setBlockState(state); return }
@@ -92,7 +94,7 @@ class TurretHeadBlockEntity(pos: BlockPos,state: BlockState) : MachineBlockEntit
         super.setBlockState(state)
         if (state != previous) { resolveBase(); refreshStats() }
     }
-    private fun valid(entity: Monster?,core: BaseCoreBlockEntity): Boolean = entity != null && entity.isAlive && !entity.isRemoved && snapshot.members.contains(entity) && entity.distanceToSqr(center) <= effectiveStats.range*effectiveStats.range && entity.distanceToSqr(core.center) <= core.stats.range*core.stats.range
+    private fun valid(entity: Monster?,core: BaseCoreBlockEntity): Boolean = entity != null && entity.isAlive && !entity.isRemoved && snapshot.members.contains(entity) && entity.distanceToSqr(center) <= effectiveStats.range*effectiveStats.range && entity.distanceToSqr(core.center) <= core.scanRadius*core.scanRadius
     private fun chooseTarget(core: BaseCoreBlockEntity,now: Long): Monster? {
         if (valid(target,core)) return target
         target = null

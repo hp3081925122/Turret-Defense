@@ -1,6 +1,6 @@
 # 炮塔防线（Turret Defense）
 
-以基地核心为枢纽的科技防御炮塔模组。首期代码与占位资源已接入，构建和14项独立服务端逻辑测试已通过；客户端交互尚未验收。按用户最新要求，性能指标作为参考，当前优化先到这里，保留实测数据。当前为开发测试版本。
+以基地核心为枢纽的科技防御炮塔模组。首期代码与占位资源已接入，构建、25项服务端功能测试及独立重启持久化测试已通过；客户端交互尚未验收。按用户最新要求，性能指标作为参考，保留实测数据。当前为开发测试版本。
 
 | 项目 | 值 |
 |:---|:---|
@@ -24,7 +24,7 @@
 ## 开发
 
 使用 JDK 17，在本目录执行 `./gradlew.bat compileKotlin processResources` 检查基础工程，或 `./gradlew.bat build` 构建。
-服务端自动检查执行 `./gradlew.bat runGameTestServer`，独立运行目录与日志位于 `D:/AI临时文件/turret-defense-dev/`。按用户要求才启动客户端。构建、服务端测试和客户端游戏内验收分别记录在 [首期开发记录](docs/首期开发记录.md)。
+服务端自动检查执行 `./gradlew.bat runGameTestServer -PwithoutJei`，每次使用 `D:/AI临时文件/turret-defense-dev/gametest-runs/` 下的新测试世界。跨进程持久化依次执行 `runGameTestServer -PwithoutJei -PpersistencePhase=seed`、`runGameTestServer -PwithoutJei -PpersistencePhase=verify`，两次复用独立的 `persistence-server` 存档。可用 `-PtestRunDirectory=绝对路径` 指定测试目录。按用户要求才启动客户端。详细证据见 [首期开发记录](docs/首期开发记录.md)。
 
 ## 当前玩法
 

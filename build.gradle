@@ -69,6 +69,7 @@ minecraft {
         }
 
         client {
+            workingDirectory file('D:/AI临时文件/turret-defense-dev/client')
             property 'forge.enabledGameTestNamespaces', project.mod_id
         }
 
@@ -77,8 +78,10 @@ minecraft {
         }
 
         gameTestServer {
-            workingDirectory file('D:/AI临时文件/turret-defense-dev/gametest-server')
-            property 'forge.enabledGameTestNamespaces', project.mod_id
+            def phase = project.findProperty('persistencePhase') ?: 'none'
+            workingDirectory file(project.findProperty('testRunDirectory') ?: (phase in ['seed','verify'] ? 'D:/AI临时文件/turret-defense-dev/persistence-server' : "D:/AI临时文件/turret-defense-dev/gametest-runs/${System.currentTimeMillis()}"))
+            property 'forge.enabledGameTestNamespaces', phase in ['seed','verify'] ? 'turretdefense_persistence' : project.mod_id
+            property 'turretdefense.persistencePhase', project.findProperty('persistencePhase') ?: 'none'
         }
 
         data {
@@ -138,7 +141,9 @@ tasks.named('processResources', ProcessResources).configure {
 
 tasks.named('jar', Jar).configure {
     exclude 'com/turretdefense/gametest/**'
+    exclude 'com/turretdefense/ui/gametest/**'
     exclude 'data/turretdefense/structures/gametest_*.nbt'
+    exclude 'data/turretdefense_persistence/structures/**'
     manifest {
         attributes([
                 'Specification-Title': project.mod_id,

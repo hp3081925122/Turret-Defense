@@ -38,6 +38,7 @@ import kotlin.math.roundToInt
 // 核心独占扫描、供能、供弹与权限管理；只遍历登记底座及已加载区块。
 class BaseCoreBlockEntity(pos: BlockPos,state: BlockState) : MachineBlockEntity(ModContent.CORE_BE.get(),pos,state) {
     val stats get() = TurretStatsTable.CORE[tier-1]
+    val scanRadius get() = min(stats.range,Config.scanRadiusCap.get().toDouble())
     val center: Vec3 = Vec3.atCenterOf(pos)
     val managedBases = Long2ObjectOpenHashMap<TurretBaseBlockEntity>()
     var health = 0.0
@@ -200,7 +201,7 @@ class BaseCoreBlockEntity(pos: BlockPos,state: BlockState) : MachineBlockEntity(
         val active = managedBases.values.any { base -> !base.isRemoved && base.heads.isNotEmpty() }
         if (!active || powerState == 0) { snapshot = ThreatSnapshot.EMPTY; nextScan = now+Config.scanInterval.get(); return }
         val start = System.nanoTime()
-        val radius = min(stats.range,Config.scanRadiusCap.get().toDouble())
+        val radius = scanRadius
         val vertical = min(radius,Config.scanVerticalRange.get().toDouble())
         // AABB 在此映射中是不可变类，只在半径或配置改变时替换缓存。
         if (cachedScanRadius != radius || cachedScanVertical != vertical) {
@@ -222,7 +223,7 @@ class BaseCoreBlockEntity(pos: BlockPos,state: BlockState) : MachineBlockEntity(
         nextScan = now+currentScanInterval
     }
     private fun judgment(world: ServerLevel,now: Long) {
-        val enemies = snapshot.targets.filter { it.isAlive && !it.isRemoved && it.distanceToSqr(center) <= stats.range*stats.range }
+        val enemies = snapshot.targets.filter { it.isAlive && !it.isRemoved && it.distanceToSqr(center) <= scanRadius*scanRadius }
         if (enemies.size < TurretStatsTable.JUDGMENT_COUNT && enemies.sumOf { it.health.toDouble() } < TurretStatsTable.JUDGMENT_HEALTH) return
         if (energy.stored < stats.judgmentEnergy || (tier >= 4 && !consumeAmmo(ModTags.JUDGMENT_AMMO[tier-4],true))) return
         if (tier >= 4) consumeAmmo(ModTags.JUDGMENT_AMMO[tier-4],false)

@@ -21,7 +21,7 @@ import kotlin.math.sqrt
 class TurretDamageSource(level: ServerLevel,val head: TurretHeadBlockEntity?,val core: BaseCoreBlockEntity?) : DamageSource(level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(Combat.DAMAGE_KEY),core?.owner?.let { level.server.playerList.getPlayer(it) })
 
 object Combat {
-    val DAMAGE_KEY: ResourceKey<DamageType> = ResourceKey.create(Registries.DAMAGE_TYPE,ResourceLocation(TurretDefense.MOD_ID,"turret"))
+    val DAMAGE_KEY: ResourceKey<DamageType> = ResourceKey.create(Registries.DAMAGE_TYPE,ResourceLocation.fromNamespaceAndPath(TurretDefense.MOD_ID,"turret"))
     fun source(level: ServerLevel,head: TurretHeadBlockEntity?,core: BaseCoreBlockEntity?) = TurretDamageSource(level,head,core)
     fun behavior(kind: TurretKind): AttackBehavior = when (kind) {
         TurretKind.Pulse,TurretKind.Particle -> HitscanBehavior
@@ -41,7 +41,7 @@ object Combat {
         blast(world,core.center,radius,damage,source(world,null,core))
     }
     // 只伤害实体，始终不调用 Level.explode，也不修改任何地形方块。
-    fun blast(level: ServerLevel,center: Vec3,radius: Double,damage: Double,source: TurretDamageSource,candidates: List<out LivingEntity>? = null,onKill: ((LivingEntity) -> Unit)? = null) {
+    fun blast(level: ServerLevel,center: Vec3,radius: Double,damage: Double,source: TurretDamageSource,candidates: List<LivingEntity>? = null,onKill: ((LivingEntity) -> Unit)? = null) {
         val entities = candidates ?: level.getEntitiesOfClass(LivingEntity::class.java,AABB(center.x-radius,center.y-radius,center.z-radius,center.x+radius,center.y+radius,center.z+radius))
         var hits = 0
         for (entity in entities) {

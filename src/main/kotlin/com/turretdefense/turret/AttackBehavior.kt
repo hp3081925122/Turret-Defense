@@ -17,6 +17,7 @@ import net.minecraft.world.phys.Vec3
 import java.util.Collections
 import java.util.IdentityHashMap
 import kotlin.math.pow
+import kotlin.math.abs
 
 // 行为对象不保存状态；能量、弹药、目标与伤害归属通过每次开火的上下文传入。
 class FireContext(val level: ServerLevel,val head: TurretHeadBlockEntity,val base: TurretBaseBlockEntity,val core: BaseCoreBlockEntity,val stats: TurretStats,val target: Monster,val snapshot: ThreatSnapshot,val energyCost: Int,val rawEnergy: Double,val ammo: TagKey<Item>?) {
@@ -29,7 +30,7 @@ class FireContext(val level: ServerLevel,val head: TurretHeadBlockEntity,val bas
         FireBudget.recordFire()
         return true
     }
-    fun valid(entity: LivingEntity) = entity.isAlive && !entity.isRemoved && !entity.isSpectator && entity.distanceToSqr(origin) <= stats.range*stats.range && entity.distanceToSqr(core.center) <= core.stats.range*core.stats.range
+    fun valid(entity: LivingEntity) = entity.isAlive && !entity.isRemoved && !entity.isSpectator && entity.distanceToSqr(origin) <= stats.range*stats.range && entity.distanceToSqr(core.center) <= core.scanRadius*core.scanRadius
     fun hurt(entity: LivingEntity,damage: Double): Boolean {
         if (!valid(entity)) return false
         val success = entity.hurt(Combat.source(level,head,core),damage.toFloat())
@@ -38,7 +39,9 @@ class FireContext(val level: ServerLevel,val head: TurretHeadBlockEntity,val bas
     }
     fun clippedLine(): Pair<Vec3,Vec3> {
         val aim = target.position().add(0.0,target.bbHeight*0.5,0.0).subtract(origin).normalize()
-        val start = origin.add(aim.scale(0.6)); val end = origin.add(aim.scale(stats.range))
+        // 刚越过自身完整方块的最近面，斜向不命中自己，也不会跳过紧贴的其他障碍。
+        val exit = 0.5001/maxOf(abs(aim.x),abs(aim.y),abs(aim.z)).coerceAtLeast(1.0e-9)
+        val start = origin.add(aim.scale(exit)); val end = origin.add(aim.scale(stats.range))
         // 只做一次方块射线检测，不在开火时查询世界实体；多目标来自核心缓存。
         val hit = level.clip(ClipContext(start,end,ClipContext.Block.COLLIDER,ClipContext.Fluid.NONE,null))
         return start to hit.location

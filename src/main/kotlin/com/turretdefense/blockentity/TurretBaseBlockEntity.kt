@@ -89,7 +89,7 @@ class TurretBaseBlockEntity(pos: BlockPos,state: BlockState) : MachineBlockEntit
         refreshModules(); findCore()
         for (direction in Direction.values()) {
             val headPos = blockPos.relative(direction)
-            if (world.hasChunkAt(headPos)) (world.getBlockEntity(headPos) as? TurretHeadBlockEntity)?.let { attachHead(direction,it) }
+            if (world.chunkSource.getChunkNow(headPos.x shr 4,headPos.z shr 4) != null) (world.getBlockEntity(headPos) as? TurretHeadBlockEntity)?.let { attachHead(direction,it) }
         }
     }
     fun refreshModules() {

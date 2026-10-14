@@ -40,7 +40,10 @@ abstract class TierBlock : BaseEntityBlock(BlockBehaviour.Properties.of().streng
     override fun getRenderShape(state: BlockState) = RenderShape.MODEL
     override fun getPistonPushReaction(state: BlockState) = PushReaction.BLOCK
     abstract fun itemId(state: BlockState): String
+    // 原版仍通过 BlockState 转发调用这些方块回调，生命周期入口不能改成其他方法。
+    @Suppress("OVERRIDE_DEPRECATION")
     override fun getDrops(state: BlockState, builder: LootParams.Builder): MutableList<ItemStack> = mutableListOf((builder.getOptionalParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.BLOCK_ENTITY) as? TurretHeadBlockEntity)?.dropStack() ?: ItemStack(ModContent.item(itemId(state))))
+    @Suppress("OVERRIDE_DEPRECATION")
     override fun getCloneItemStack(level: net.minecraft.world.level.BlockGetter,pos: BlockPos,state: BlockState) = ItemStack(ModContent.item(itemId(state)))
     override fun setPlacedBy(level: Level,pos: BlockPos,state: BlockState,player: LivingEntity?,stack: ItemStack) {
         if (!level.isClientSide && player is Player) {
@@ -50,6 +53,7 @@ abstract class TierBlock : BaseEntityBlock(BlockBehaviour.Properties.of().streng
             }
         }
     }
+    @Suppress("OVERRIDE_DEPRECATION")
     override fun use(state: BlockState,level: Level,pos: BlockPos,player: Player,hand: InteractionHand,hit: BlockHitResult): InteractionResult {
         if (hand != InteractionHand.MAIN_HAND) return InteractionResult.PASS
         if (player.isShiftKeyDown || player.mainHandItem.item is TierBlockItem) return InteractionResult.PASS
@@ -74,6 +78,7 @@ class BaseCoreBlock : TierBlock() {
     override fun newBlockEntity(pos: BlockPos,state: BlockState) = BaseCoreBlockEntity(pos,state)
     override fun <T: BlockEntity> getTicker(level: Level,state: BlockState,type: BlockEntityType<T>): BlockEntityTicker<T>? =
         if (level.isClientSide) null else createTickerHelper(type,ModContent.CORE_BE.get()) { _,_,_,entity -> entity.serverTick() }
+    @Suppress("DEPRECATION","OVERRIDE_DEPRECATION")
     override fun onRemove(state: BlockState,level: Level,pos: BlockPos,newState: BlockState,moving: Boolean) {
         if (state.block !== newState.block && !level.isClientSide) (level.getBlockEntity(pos) as? BaseCoreBlockEntity)?.destroyCore()
         super.onRemove(state,level,pos,newState,moving)
@@ -85,6 +90,7 @@ class TurretBaseBlock : TierBlock() {
     override fun newBlockEntity(pos: BlockPos,state: BlockState) = TurretBaseBlockEntity(pos,state)
     override fun <T: BlockEntity> getTicker(level: Level,state: BlockState,type: BlockEntityType<T>): BlockEntityTicker<T>? =
         if (level.isClientSide) null else createTickerHelper(type,ModContent.BASE_BE.get()) { _,_,_,entity -> entity.serverTick() }
+    @Suppress("DEPRECATION","OVERRIDE_DEPRECATION")
     override fun onRemove(state: BlockState,level: Level,pos: BlockPos,newState: BlockState,moving: Boolean) {
         if (state.block !== newState.block && !level.isClientSide) (level.getBlockEntity(pos) as? TurretBaseBlockEntity)?.dismantle()
         super.onRemove(state,level,pos,newState,moving)

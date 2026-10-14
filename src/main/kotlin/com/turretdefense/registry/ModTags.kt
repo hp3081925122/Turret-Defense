@@ -13,5 +13,5 @@ object ModTags {
     val EXPLOSIVE_AMMO: TagKey<Item> = itemTag("ammo/explosive")
     val KIND_AMMO = TurretKind.ALL.associateWith { kind -> arrayOf(itemTag("ammo/${kind.id}_t4"),itemTag("ammo/${kind.id}_t5")) }
     val JUDGMENT_AMMO = arrayOf(itemTag("ammo/judgment_t4"),itemTag("ammo/judgment_t5"))
-    private fun itemTag(path: String): TagKey<Item> = TagKey.create(Registries.ITEM,ResourceLocation(TurretDefense.MOD_ID,path))
+    private fun itemTag(path: String): TagKey<Item> = TagKey.create(Registries.ITEM,ResourceLocation.fromNamespaceAndPath(TurretDefense.MOD_ID,path))
 }

@@ -20,7 +20,7 @@ import net.minecraft.world.item.ItemStack
 // 仅由 JEI 注解扫描加载；主模组不会引用该类，缺少 JEI 仍可运行。
 @JeiPlugin
 class TurretJeiPlugin : IModPlugin {
-    override fun getPluginUid() = ResourceLocation("turretdefense","jei")
+    override fun getPluginUid() = ResourceLocation.fromNamespaceAndPath("turretdefense","jei")
     override fun registerCategories(registration: IRecipeCategoryRegistration) { registration.addRecipeCategories(UpgradeCategory(registration.jeiHelpers.guiHelper)) }
     override fun registerRecipes(registration: IRecipeRegistration) {
         val recipes = Minecraft.getInstance().level?.recipeManager?.getAllRecipesFor(UpgradeRules.TYPE.get()) ?: emptyList()

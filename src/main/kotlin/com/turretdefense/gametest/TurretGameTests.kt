@@ -143,7 +143,7 @@ class TurretGameTests {
             setup(helper,coreTier=4)
             helper.runAtTickTime(5) {
                 val core = core(helper); core.energy.stored = 0
-                val recipe = helper.level.recipeManager.byKey(ResourceLocation("turretdefense","upgrade/core_t5")).orElseThrow() as UpgradeRecipe
+                val recipe = helper.level.recipeManager.byKey(ResourceLocation.fromNamespaceAndPath("turretdefense","upgrade/core_t5")).orElseThrow() as UpgradeRecipe
                 val player = FakePlayerFactory.getMinecraft(helper.level)
                 player.inventory.clearContent()
                 var slot = 0
@@ -295,6 +295,206 @@ class TurretGameTests {
             }
         }
 
+        // 即使旧快照仍保留实体，离开实际扫描半径后也不能继续命中；管理半径独立校验。
+        @JvmStatic @GameTest(template="gametest_empty",templateNamespace="turretdefense",timeoutTicks=40)
+        fun scan_cap_and_management_radius_boundaries(helper: GameTestHelper) {
+            setup(helper)
+            helper.runAtTickTime(5) {
+                val core = core(helper); val base = base(helper); val head = head(helper)
+                val oldCap = Config.scanRadiusCap.get()
+                try {
+                    Config.scanRadiusCap.set(16); head.refreshStats()
+                    helper.assertTrue(core.scanRadius == 16.0 && head.effectiveStats.range == 16.0,"Actual scan cap must limit effective head range")
+                    val zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE,10,3,6)
+                    val snapshot = ThreatSnapshot(listOf(zombie),doubleArrayOf(zombie.distanceToSqr(core.center)),helper.level.gameTime)
+                    val context = FireContext(helper.level,head,base,core,head.effectiveStats,zombie,snapshot,6,6.0,null)
+                    helper.assertTrue(context.valid(zombie),"Target inside both radii must be valid")
+                    val beyond = core.center.add(17.0,0.0,0.0); zombie.moveTo(beyond.x,beyond.y,beyond.z,0f,0f)
+                    helper.assertTrue(zombie.distanceToSqr(head.center) < 16*16 && !context.valid(zombie),"Cached target outside actual core scan cap must be rejected")
+                    helper.assertTrue(!core.inRange(core.blockPos.east(129)),"Base beyond management radius cannot receive a binding")
+                    head.acceptThreats(snapshot); core.energy.stored = core.stats.energy; base.energy.stored = 1000
+                    FireBudget.clear(); FireBudget.beginTick(); head.nextFireTick = helper.level.gameTime; head.serverTick()
+                    helper.assertTrue(head.status == "no_target","Sticky target validation must reject scan-cap escape")
+                    TurretDefense.LOGGER.debug("Scan cap boundary verified: cap={}, cachedTargetOutsideCap=true",core.scanRadius)
+                } finally { Config.scanRadiusCap.set(oldCap); head.refreshStats(); FireBudget.clear() }
+                helper.succeed()
+            }
+        }
+
+        // 斜向射线必须离开自己的碰撞箱；紧贴炮口的实心墙仍应挡住开火且不扣能量。
+        @JvmStatic @GameTest(template="gametest_empty",templateNamespace="turretdefense",timeoutTicks=40)
+        fun diagonal_hitscan_exits_head_but_respects_adjacent_wall(helper: GameTestHelper) {
+            setup(helper)
+            helper.runAtTickTime(5) {
+                val core = core(helper); val base = base(helper); val head = head(helper)
+                val zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE,10,4,10)
+                zombie.setNoGravity(true); zombie.setItemSlot(net.minecraft.world.entity.EquipmentSlot.HEAD,ItemStack(Items.IRON_HELMET))
+                val snapshot = ThreatSnapshot(listOf(zombie),doubleArrayOf(zombie.distanceToSqr(core.center)),helper.level.gameTime)
+                val context = FireContext(helper.level,head,base,core,head.effectiveStats,zombie,snapshot,6,6.0,null)
+                base.energy.stored = 1000
+                helper.assertTrue(HitscanBehavior.fire(context) && zombie.health < zombie.maxHealth,"Diagonal pulse ray must hit target rather than its own full block")
+                val position = helper.absolutePos(BlockPos(10,3,6)); zombie.moveTo(position.x+0.5,position.y.toDouble(),position.z+0.5,0f,0f)
+                helper.setBlock(7,4,6,Blocks.STONE)
+                val energy = base.energy.stored
+                helper.assertTrue(!HitscanBehavior.fire(context) && base.energy.stored == energy,"Adjacent solid wall must block the shot without consuming FE")
+                TurretDefense.LOGGER.debug("Diagonal hitscan regression verified: ownBlockSkipped=true, adjacentWallBlocked=true")
+                helper.succeed()
+            }
+        }
+
+        // 真实实体触发原版与 Forge 爆炸链，不能用手工构造事件替代。
+        @JvmStatic @GameTest(template="gametest_empty",templateNamespace="turretdefense",timeoutTicks=100)
+        fun real_tnt_and_creeper_damage_only_machine_health(helper: GameTestHelper) {
+            setup(helper,headTier=5)
+            var before = 0.0
+            helper.runAtTickTime(5) {
+                val head = head(helper); head.shieldLayers = 0; head.nextFireTick = Long.MAX_VALUE; before = head.health
+                val tnt = helper.spawn(EntityType.TNT,BlockPos(6,5,6)); tnt.setNoGravity(true); tnt.setFuse(2)
+            }
+            helper.runAtTickTime(12) {
+                helper.assertTrue(head(helper).health in 0.001..before && head(helper).health < before,"Real TNT must reduce head health without directly deleting its block")
+                helper.assertBlockPresent(ModContent.BASE.get(),BASE)
+                val head = head(helper); head.health = head.effectiveStats.health; head.shieldLayers = 0; before = head.health
+                val creeper = helper.spawnWithNoFreeWill(EntityType.CREEPER,6,5,6); creeper.setNoGravity(true); creeper.ignite()
+            }
+            helper.runAtTickTime(48) {
+                helper.assertTrue(head(helper).health > 0 && head(helper).health < before,"Real creeper explosion must pass through machine damage settlement")
+                helper.assertBlockPresent(ModContent.BASE.get(),BASE)
+                head(helper).shieldLayers = 0; head(helper).takeDamage(1000.0)
+                helper.assertTrue(helper.level.getBlockEntity(helper.absolutePos(BASE.above())) == null,"Head health depletion must remove only the head")
+                helper.assertBlockPresent(ModContent.BASE.get(),BASE); helper.succeed()
+            }
+        }
+
+        // 使用实际对外能力接口验证六面输入、配置关闭以及能力失效后的重建。
+        @JvmStatic @GameTest(template="gametest_empty",templateNamespace="turretdefense",timeoutTicks=40)
+        fun external_capabilities_and_revival(helper: GameTestHelper) {
+            setup(helper)
+            helper.runAtTickTime(5) {
+                val core = core(helper); core.energy.stored = 0
+                for (direction in Direction.values()) {
+                    val storage = core.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ENERGY,direction).resolve().orElseThrow()
+                    helper.assertTrue(storage.receiveEnergy(100,true) == 100,"FE simulation must be accepted from every side")
+                    storage.receiveEnergy(100,false)
+                    helper.assertTrue(storage.extractEnergy(100,false) == 0,"Input-only core must not expose internal energy extraction")
+                }
+                helper.assertTrue(core.energy.stored == 600,"Simulated receipts cannot double count FE")
+                val enabled = Config.externalFE.get()
+                try { Config.externalFE.set(false); helper.assertTrue(core.energy.receiveEnergy(100,false) == 0,"External FE configuration must reject input") }
+                finally { Config.externalFE.set(enabled) }
+                val old = core.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ENERGY)
+                core.invalidateCaps(); helper.assertTrue(old.resolve().isEmpty,"Old capability must invalidate")
+                core.reviveCaps()
+                helper.assertTrue(core.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ENERGY).resolve().orElseThrow().energyStored == 600,"Revived capability must retain stored energy")
+                helper.succeed()
+            }
+        }
+
+        // 核心仅剩一个空槽时，传输必须先填入整组经验瓶并保留暂时无法传出的物品。
+        @JvmStatic @GameTest(template="gametest_empty",templateNamespace="turretdefense",timeoutTicks=160)
+        fun scheduled_loot_transfer_prioritizes_experience(helper: GameTestHelper) {
+            setup(helper)
+            val drop = Config.dropOnFull.get()
+            helper.runAtTickTime(5) {
+                Config.dropOnFull.set(false)
+                val core = core(helper); val base = base(helper); head(helper).nextFireTick = Long.MAX_VALUE
+                for (slot in 19 until 46) core.inventory.setStackInSlot(slot,ItemStack(Items.DIRT,64))
+                core.inventory.setStackInSlot(19,ItemStack.EMPTY)
+                base.inventory.setStackInSlot(5,ItemStack(Items.DIAMOND,64)); base.inventory.setStackInSlot(6,ItemStack(Items.EXPERIENCE_BOTTLE,64))
+            }
+            helper.runAtTickTime(115) {
+                try {
+                    val core = core(helper); val base = base(helper)
+                    helper.assertTrue(core.inventory.getStackInSlot(19).`is`(Items.EXPERIENCE_BOTTLE) && core.inventory.getStackInSlot(19).count == 64,"Scheduled transfer must prioritize experience bottles")
+                    helper.assertTrue(base.inventory.getStackInSlot(6).isEmpty && base.inventory.getStackInSlot(5).count == 64,"Full core must leave nontransferred items in the base")
+                    helper.succeed()
+                } finally { Config.dropOnFull.set(drop) }
+            }
+        }
+
+        // 零能量停止修复，供能恢复后由真实核心维护周期执行修复。
+        @JvmStatic @GameTest(template="gametest_empty",templateNamespace="turretdefense",timeoutTicks=100)
+        fun periodic_repair_requires_core_energy(helper: GameTestHelper) {
+            setup(helper)
+            helper.runAtTickTime(5) { val core = core(helper); core.energy.stored = 0; head(helper).health = 1.0; head(helper).nextFireTick = Long.MAX_VALUE }
+            helper.runAtTickTime(30) { helper.assertTrue(head(helper).health == 1.0,"Empty core cannot repair heads"); core(helper).energy.stored = core(helper).stats.energy }
+            helper.runAtTickTime(60) { helper.assertTrue(head(helper).health > 1.0,"Powered core must repair damaged heads on its maintenance cycle"); helper.succeed() }
+        }
+
+        // 对整个测试体积逐方块比对，自爆、裁决、核心弹药殉爆不得修改其他方块。
+        @JvmStatic @GameTest(template="gametest_empty",templateNamespace="turretdefense",timeoutTicks=80)
+        fun all_mod_blasts_preserve_surrounding_blocks(helper: GameTestHelper) {
+            setup(helper)
+            val original = linkedMapOf<BlockPos,net.minecraft.world.level.block.state.BlockState>()
+            helper.runAtTickTime(5) {
+                for (x in 0 until 16) for (y in 0 until 8) for (z in 0 until 16) {
+                    val pos = helper.absolutePos(BlockPos(x,y,z)); val state = helper.level.getBlockState(pos)
+                    if (state.block !is TierBlock) original[pos] = state
+                }
+                val core = core(helper); val head = head(helper)
+                val enemies = (9..11).map { helper.spawnWithNoFreeWill(EntityType.ZOMBIE,it,3,6) }
+                Combat.judgment(core,enemies)
+                Combat.headBlast(head,5.0,40.0)
+                core.inventory.setStackInSlot(1,ItemStack(ModContent.item("ammo_grenade"),8))
+                core.destroyCore()
+            }
+            helper.runAtTickTime(45) {
+                helper.assertTrue(original.all { (pos,state) -> helper.level.getBlockState(pos) == state },"Self-destruct, judgment and martyr blasts must preserve every surrounding block")
+                helper.succeed()
+            }
+        }
+
+        // 让原版流体、火焰和活塞实际更新，确认底座不被替换或移动。
+        @JvmStatic @GameTest(template="gametest_empty",templateNamespace="turretdefense",timeoutTicks=140)
+        fun base_resists_water_fire_and_piston(helper: GameTestHelper) {
+            setup(helper)
+            lateinit var originalBase: TurretBaseBlockEntity
+            helper.runAtTickTime(5) {
+                originalBase = base(helper)
+                helper.setBlock(BASE.above(3),Blocks.WATER)
+                helper.setBlock(7,2,6,Blocks.STONE); helper.setBlock(7,3,6,Blocks.FIRE)
+                helper.setBlock(5,3,6,Blocks.PISTON.defaultBlockState().setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING,Direction.EAST))
+                helper.setBlock(5,3,5,Blocks.REDSTONE_BLOCK)
+            }
+            helper.runAtTickTime(100) {
+                helper.assertBlockPresent(ModContent.BASE.get(),BASE)
+                helper.assertBlockPresent(ModContent.HEADS.getValue(TurretKind.Pulse).get(),BASE.above())
+                helper.assertTrue(helper.level.getBlockEntity(helper.absolutePos(BASE)) === originalBase,"Piston and fluid updates cannot replace the base entity")
+                helper.succeed()
+            }
+        }
+
+        // 远离强加载的测试结构，只读检查不会给远端区块续票，待其自然卸载后再重新加载。
+        @JvmStatic @GameTest(template="gametest_empty",templateNamespace="turretdefense",timeoutTicks=300)
+        fun natural_chunk_unload_clears_runtime_and_rebinds(helper: GameTestHelper) {
+            val corePos = BlockPos(20000,60,20000); val basePos = corePos.east(4); val headPos = basePos.above()
+            var oldHead: TurretHeadBlockEntity? = null
+            helper.runAtTickTime(5) {
+                val level = helper.level
+                level.setBlock(corePos,ModContent.CORE.get().defaultBlockState().setValue(TierBlock.TIER,5),3)
+                level.setBlock(basePos,ModContent.BASE.get().defaultBlockState().setValue(TierBlock.TIER,3),3)
+                level.setBlock(headPos,ModContent.HEADS.getValue(TurretKind.Pulse).get().defaultBlockState().setValue(TierBlock.TIER,2).setValue(TurretHeadBlock.FACING,Direction.DOWN),3)
+                oldHead = level.getBlockEntity(headPos) as TurretHeadBlockEntity
+                oldHead!!.pendingXp = 6; oldHead!!.kills = 23; oldHead!!.setChanged()
+            }
+            helper.runAtTickTime(220) {
+                val level = helper.level; val runtime = LevelRuntime.get(level)
+                helper.assertTrue(level.chunkSource.getChunkNow(corePos.x shr 4,corePos.z shr 4) == null,"Remote chunk must naturally unload without a forced ticket")
+                helper.assertTrue(oldHead!!.isRemoved && !runtime.heads.containsKey(headPos.asLong()) && !runtime.bases.containsKey(basePos.asLong()) && !runtime.cores.containsKey(corePos.asLong()),"Unloaded machines cannot remain in runtime registries")
+                level.setChunkForced(corePos.x shr 4,corePos.z shr 4,true)
+                level.getBlockEntity(corePos); level.getBlockEntity(basePos); level.getBlockEntity(headPos)
+            }
+            helper.runAtTickTime(245) {
+                try {
+                    val level = helper.level; val core = level.getBlockEntity(corePos) as BaseCoreBlockEntity
+                    val base = level.getBlockEntity(basePos) as TurretBaseBlockEntity; val head = level.getBlockEntity(headPos) as TurretHeadBlockEntity
+                    helper.assertTrue(head !== oldHead && head.pendingXp == 6 && head.kills == 23,"Reload must instantiate saved head data")
+                    helper.assertTrue(head.boundBase === base && base.core === core && core.managedBases[basePos.asLong()] === base,"Reloaded machines must rebind bidirectionally")
+                    helper.succeed()
+                } finally { helper.level.setChunkForced(corePos.x shr 4,corePos.z shr 4,false) }
+            }
+        }
+
         @JvmStatic @GameTest(template="gametest_empty",templateNamespace="turretdefense",timeoutTicks=40)
         fun priority_change_reselects_sticky_target(helper: GameTestHelper) {
             setup(helper)
@@ -337,6 +537,12 @@ class TurretGameTests {
                 helper.assertTrue(core.scanCount > 0 && core.scanPeakNanos > 0,"Stress scene must execute measured scans")
                 helper.assertTrue(FireBudget.peakFires <= 64,"Stress scene cannot exceed the global firing limit")
                 TurretDefense.LOGGER.info("Stress sample after warmup: requestedHeads=200, initialMonsters=400, currentEnemies={}, coreRange={}, modMeanMs={}, modPeakMs={}, scanMeanMs={}, scanPeakMs={}, pathMeanMs={}, pathPeakMs={}, peakFires={}",core.snapshot.targets.size,core.stats.range,runtime.meanMillis(),runtime.peakMillis(),core.scanTotalNanos.toDouble()/core.scanCount/1_000_000.0,core.scanPeakNanos/1_000_000.0,if (runtime.pathCount == 0L) 0.0 else runtime.pathNanos.toDouble()/runtime.pathCount/1_000_000.0,runtime.pathPeakNanos/1_000_000.0,FireBudget.peakFires)
+                // 压测批次结束必须移除自己的怪物和机器，避免其攻击或殉爆污染随后运行的功能测试。
+                helper.level.getEntitiesOfClass(net.minecraft.world.entity.Entity::class.java,AABB(corePos).inflate(96.0)).filter { it !is net.minecraft.world.entity.player.Player }.forEach { it.discard() }
+                val bases = core.managedBases.values.toList()
+                val positions = bases.flatMap { it.heads.values.map { head -> head.blockPos } }+bases.map { it.blockPos }+core.blockPos
+                positions.forEach { helper.level.removeBlockEntity(it); helper.level.setBlock(it,Blocks.AIR.defaultBlockState(),3) }
+                TurretDefense.LOGGER.debug("Stress fixture cleaned before the next test batch: machines={}",positions.size)
                 Config.maxBases.set(previousLimit)
                 helper.succeed()
             }
