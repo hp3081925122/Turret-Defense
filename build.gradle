@@ -8,6 +8,12 @@ plugins {
 }
 
 repositories {
+    if (project.hasProperty('withClientMcp')) {
+        maven {
+            url = uri('D:/AI临时文件/turret-defense-dev/mcp-maven')
+            content { includeGroup 'local.validation' }
+        }
+    }
     mavenCentral()
     maven {
         name = 'KotlinForForge'
@@ -69,7 +75,8 @@ minecraft {
         }
 
         client {
-            workingDirectory file('D:/AI临时文件/turret-defense-dev/client')
+            workingDirectory file(project.findProperty('clientRunDirectory') ?: 'D:/AI临时文件/turret-defense-dev/client')
+            if (project.hasProperty('withClientMcp')) property 'mcp.port', '9786'
             property 'forge.enabledGameTestNamespaces', project.mod_id
         }
 
@@ -104,6 +111,7 @@ dependencies {
     compileOnly fg.deobf("mezz.jei:jei-1.20.1-forge-api:${project.jei_version}")
     compileOnly fg.deobf("mezz.jei:jei-1.20.1-common-api:${project.jei_version}")
     if (!project.hasProperty('withoutJei')) runtimeOnly fg.deobf("mezz.jei:jei-1.20.1-forge:${project.jei_version}")
+    if (project.hasProperty('withClientMcp')) runtimeOnly fg.deobf('local.validation:minecraft-mcp-forge:0.1.1-local')
 }
 
 // 统一 Kotlin、Java 和资源输出目录，满足 KFF 开发环境要求。

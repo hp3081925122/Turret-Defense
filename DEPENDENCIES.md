@@ -31,3 +31,11 @@ API 稳定性：指定 Minecraft 分支的 Forge API；版本锁定，不自动�
 结论：实现了指定的软依赖接入方式；没有把 JEI 写入 `mods.toml`，未把编译与专服启动当作客户端显示证据。
 
 Forge 开发运行启用依赖 refmap 的 SRG→official 映射，映射文件由 `createSrgToMcp` 生成。KFF 官方仓库已验证可直连，保持证书校验；为无超时的 ForgeGradle 环境探测增加10秒连接和读取超时，避免离线构建也无限等待 TLS 握手。
+
+## 客户端验证工具
+
+2026-10-14核对已有Minecraft MCP工具：文件名为 `minecraft-mcp-1.20.1-forge-v0.2.0.jar`，实际 `mods.toml` 为 `mcpmod` / 0.1.1，MIT，适用Minecraft 1.20.1 Forge。来源是本机已下载工具 `C:/Users/30819/Documents/Codex/2026-06-07/1-2-3-4-5-6/outputs/minecraft-mod-mcp-jars/`；原文件保持不变，SHA-256为 `dd99df12c24cc9ee60541e5bca244d315f88dc42920702267ec00c3cb5fcf879`。
+
+原工具HTTP监听所有网卡。本次仅在 `D:/AI临时文件/turret-defense-dev/mcp-maven/` 制作验证副本，将HTTP服务器两条绑定路径改成127.0.0.1，版本坐标为 `local.validation:minecraft-mcp-forge:0.1.1-local`，SHA-256为 `ad576ca804f9e2baa9402f1c3fb46301175512e9af9e35f12b32310bf2d9b358`。通过字节码、实际PID和监听地址核对，开发端口9786仅监听本机。游戏状态查询和真实帧缓冲截图成功；该次客户端之后正常退出，不能据此声称完成GUI交互验收。
+
+只有显式使用 `-PwithClientMcp` 才加入开发运行依赖；`-PclientRunDirectory=绝对路径` 可指定隔离客户端。默认运行与正式JAR均不包含该工具，未写入 `mods.toml`。

@@ -128,5 +128,9 @@
   "death.attack.turretdefense.turret.player": "%1$s 被 %2$s 的炮塔击败",
   "command.turretdefense.perf": "核心 %1$s / 底座 %2$s / 塔头 %3$s；模组均值 %4$s ms、峰值 %5$s ms；扫描均值 %6$s ms、峰值 %7$s ms；开火当前 %8$s、峰值 %9$s；限流 %10$s；粒子包 %11$s；服务器均值 %12$s ms",
   "command.turretdefense.stress_limit": "当前单核心上限只允许 %s 个塔头，请先调整 maxBasesPerCore",
-  "command.turretdefense.stress_created": "已搭建 %1$s 个塔头和 %2$s 只僵尸。仅在专用测试世界运行此命令。"
+  "command.turretdefense.stress_created": "已搭建 %1$s 个塔头和 %2$s 只僵尸。仅在专用测试世界运行此命令。",
+  "ui.turretdefense.core_install_hint": "安装：先放核心，再在附近放炮塔底座；手持塔头右键底座的空闲面，旁边一格需留空。",
+  "ui.turretdefense.base_install_hint": "安装：退出界面，手持塔头右键底座的空闲面。T1/T2/T3/T4/T5 最多装 1/2/3/4/6 个塔头。",
+  "ui.turretdefense.power_hint": "供能：核心燃料槽放煤或接入 FE。T1–T3 只耗能；T4/T5 非激光塔头还需核心中的对应弹药。",
+  "ui.turretdefense.head_capacity": "已安装 / 可安装塔头"
 }

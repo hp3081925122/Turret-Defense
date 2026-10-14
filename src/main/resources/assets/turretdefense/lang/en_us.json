@@ -128,5 +128,9 @@
   "death.attack.turretdefense.turret.player": "%1$s was defeated by %2$s's turret",
   "command.turretdefense.perf": "Cores %1$s / bases %2$s / heads %3$s; mod mean %4$s ms, peak %5$s ms; scan mean %6$s ms, peak %7$s ms; fires %8$s, peak %9$s; budget waits %10$s; particle packets %11$s; server mean %12$s ms",
   "command.turretdefense.stress_limit": "Current core limit supports %s heads; adjust maxBasesPerCore first",
-  "command.turretdefense.stress_created": "Created %1$s turret heads and %2$s zombies. Use this command only in a dedicated test world."
+  "command.turretdefense.stress_created": "Created %1$s turret heads and %2$s zombies. Use this command only in a dedicated test world.",
+  "ui.turretdefense.core_install_hint": "Install: place a core, then a nearby turret base. Right-click a free base face with a turret head; leave the adjacent block empty.",
+  "ui.turretdefense.base_install_hint": "Install: close this screen and right-click a free base face with a turret head. T1/T2/T3/T4/T5 support 1/2/3/4/6 heads.",
+  "ui.turretdefense.power_hint": "Power: put coal in the core fuel slot or supply FE. T1–T3 use energy only; T4/T5 non-laser heads also need matching ammo in the core.",
+  "ui.turretdefense.head_capacity": "Installed / maximum heads"
 }

@@ -1,1 +1,95 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="aui-viewport" content="mode=browser"><meta name="aui-font-mode" content="web"><meta name="aui-mouse-events" content="intercept"><link rel="stylesheet" href="../turretdefense.css"></head><body><div id="turret_defense"><div class="panel"><h1 data-i18n="title_core" ></h1><div id="energy"></div><div id="machine_status"></div><div class="row"><button data-i18n="upgrade" id="upgrade_machine"></button><button data-i18n="cancel" id="cancel_machine"></button></div><div data-i18n="upgrade_hint" class="hint"></div><div id="upgrade_progress"></div><div class="row"><div data-i18n="trust" ></div><input id="trust_id" type="text"></input><button data-i18n="add" id="trust_add"></button><button data-i18n="remove" id="trust_remove"></button></div><div id="trusted_list"></div><div id="scan_status"></div><container id="block_entity" bind="block_entity"><div data-i18n="fuel" ></div><div class="slot_row"><slot id="fuel" slot-index="0"></slot><span id="burn_status"></span></div><div data-i18n="ammo" ></div><div class="slot_grid"><slot id="ammo_0" slot-index="1"></slot><slot id="ammo_1" slot-index="2"></slot><slot id="ammo_2" slot-index="3"></slot><slot id="ammo_3" slot-index="4"></slot><slot id="ammo_4" slot-index="5"></slot><slot id="ammo_5" slot-index="6"></slot><slot id="ammo_6" slot-index="7"></slot><slot id="ammo_7" slot-index="8"></slot><slot id="ammo_8" slot-index="9"></slot><slot id="ammo_9" slot-index="10"></slot><slot id="ammo_10" slot-index="11"></slot><slot id="ammo_11" slot-index="12"></slot><slot id="ammo_12" slot-index="13"></slot><slot id="ammo_13" slot-index="14"></slot><slot id="ammo_14" slot-index="15"></slot><slot id="ammo_15" slot-index="16"></slot><slot id="ammo_16" slot-index="17"></slot><slot id="ammo_17" slot-index="18"></slot></div><div data-i18n="cache" ></div><div class="slot_grid"><slot id="cache_0" slot-index="19"></slot><slot id="cache_1" slot-index="20"></slot><slot id="cache_2" slot-index="21"></slot><slot id="cache_3" slot-index="22"></slot><slot id="cache_4" slot-index="23"></slot><slot id="cache_5" slot-index="24"></slot><slot id="cache_6" slot-index="25"></slot><slot id="cache_7" slot-index="26"></slot><slot id="cache_8" slot-index="27"></slot><slot id="cache_9" slot-index="28"></slot><slot id="cache_10" slot-index="29"></slot><slot id="cache_11" slot-index="30"></slot><slot id="cache_12" slot-index="31"></slot><slot id="cache_13" slot-index="32"></slot><slot id="cache_14" slot-index="33"></slot><slot id="cache_15" slot-index="34"></slot><slot id="cache_16" slot-index="35"></slot><slot id="cache_17" slot-index="36"></slot><slot id="cache_18" slot-index="37"></slot><slot id="cache_19" slot-index="38"></slot><slot id="cache_20" slot-index="39"></slot><slot id="cache_21" slot-index="40"></slot><slot id="cache_22" slot-index="41"></slot><slot id="cache_23" slot-index="42"></slot><slot id="cache_24" slot-index="43"></slot><slot id="cache_25" slot-index="44"></slot><slot id="cache_26" slot-index="45"></slot></div></container><div data-i18n="inventory" ></div><container id="player" bind="player" layout="preset:player"></container><div data-i18n="bases" ></div><div id="bases_list"></div></div></div><script src="../turretdefense.js"></script></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="aui-viewport" content="mode=browser,zoom=1,min-zoom=0.75,max-zoom=2,user-scalable=true">
+<meta name="aui-font-mode" content="web">
+<meta name="aui-mouse-events" content="intercept">
+<link rel="stylesheet" href="../turretdefense.css">
+</head>
+<body class="turret_defense_screen">
+<div id="turret_defense">
+<div class="panel">
+<h1 data-i18n="title_core"></h1>
+<div class="guide"><div class="guide_line" data-i18n="core_install_hint"></div><div class="guide_line" data-i18n="power_hint"></div></div>
+<div id="energy" class="status_line"></div>
+<div id="machine_status" class="status_line"></div>
+<div id="scan_status" class="status_line"></div>
+<div class="section">
+<div class="row"><button data-i18n="upgrade" id="upgrade_machine"></button><button data-i18n="cancel" id="cancel_machine"></button></div>
+<div data-i18n="upgrade_hint" class="hint"></div>
+<div id="upgrade_progress" class="material_list"></div>
+</div>
+<div class="section">
+<div class="section_title" data-i18n="trust"></div>
+<div class="row"><input id="trust_id" type="text"><button data-i18n="add" id="trust_add"></button><button data-i18n="remove" id="trust_remove"></button></div>
+<div id="trusted_list" class="hint material_list"></div>
+</div>
+<div class="storage_columns">
+<container id="block_entity" bind="block_entity">
+<div class="section_title" data-i18n="fuel"></div>
+<div class="slot_row"><slot id="fuel" slot-index="0"></slot><span id="burn_status" class="hint"></span></div>
+<div class="section_title" data-i18n="ammo"></div>
+<div class="slot_grid">
+<slot id="ammo_0" slot-index="1"></slot>
+<slot id="ammo_1" slot-index="2"></slot>
+<slot id="ammo_2" slot-index="3"></slot>
+<slot id="ammo_3" slot-index="4"></slot>
+<slot id="ammo_4" slot-index="5"></slot>
+<slot id="ammo_5" slot-index="6"></slot>
+<slot id="ammo_6" slot-index="7"></slot>
+<slot id="ammo_7" slot-index="8"></slot>
+<slot id="ammo_8" slot-index="9"></slot>
+<slot id="ammo_9" slot-index="10"></slot>
+<slot id="ammo_10" slot-index="11"></slot>
+<slot id="ammo_11" slot-index="12"></slot>
+<slot id="ammo_12" slot-index="13"></slot>
+<slot id="ammo_13" slot-index="14"></slot>
+<slot id="ammo_14" slot-index="15"></slot>
+<slot id="ammo_15" slot-index="16"></slot>
+<slot id="ammo_16" slot-index="17"></slot>
+<slot id="ammo_17" slot-index="18"></slot>
+</div>
+<div class="section_title" data-i18n="cache"></div>
+<div class="slot_grid">
+<slot id="cache_0" slot-index="19"></slot>
+<slot id="cache_1" slot-index="20"></slot>
+<slot id="cache_2" slot-index="21"></slot>
+<slot id="cache_3" slot-index="22"></slot>
+<slot id="cache_4" slot-index="23"></slot>
+<slot id="cache_5" slot-index="24"></slot>
+<slot id="cache_6" slot-index="25"></slot>
+<slot id="cache_7" slot-index="26"></slot>
+<slot id="cache_8" slot-index="27"></slot>
+<slot id="cache_9" slot-index="28"></slot>
+<slot id="cache_10" slot-index="29"></slot>
+<slot id="cache_11" slot-index="30"></slot>
+<slot id="cache_12" slot-index="31"></slot>
+<slot id="cache_13" slot-index="32"></slot>
+<slot id="cache_14" slot-index="33"></slot>
+<slot id="cache_15" slot-index="34"></slot>
+<slot id="cache_16" slot-index="35"></slot>
+<slot id="cache_17" slot-index="36"></slot>
+<slot id="cache_18" slot-index="37"></slot>
+<slot id="cache_19" slot-index="38"></slot>
+<slot id="cache_20" slot-index="39"></slot>
+<slot id="cache_21" slot-index="40"></slot>
+<slot id="cache_22" slot-index="41"></slot>
+<slot id="cache_23" slot-index="42"></slot>
+<slot id="cache_24" slot-index="43"></slot>
+<slot id="cache_25" slot-index="44"></slot>
+<slot id="cache_26" slot-index="45"></slot>
+</div>
+</container>
+<div>
+<div class="section_title" data-i18n="inventory"></div>
+<container id="player" bind="player" layout="preset:player"></container>
+<div class="section_title" data-i18n="bases"></div>
+<div id="bases_list" class="hint material_list"></div>
+</div>
+</div>
+</div>
+</div>
+<script src="../turretdefense.js"></script>
+</body>
+</html>

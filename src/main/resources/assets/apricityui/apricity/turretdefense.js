@@ -23,13 +23,17 @@ document.addEventListener('DOMContentLoaded', function () {
         if (state.type === 'base') {
             document.getElementById('overload').disabled = !state.overloadEnabled;
             set('core_info', text('core') + ': ' + (state.core || text('offline')));
+            var installed = 0;
             for (var j = 0; j < 5; j++) { var slot = document.getElementById('module_' + j); slot.style.display = j < state.tier ? 'block' : 'none'; }
             for (var face = 0; face < 6; face++) {
                 var head = state.heads[face];
-                set('head_' + face, head.kind ? text('kind_' + head.kind) + ' T' + head.tier + '  ' + Math.round(head.health) + '/' + Math.round(head.maxHealth) + '  ' + text('shield') + ' ' + head.shield + '  ' + text('state_' + head.state) + ' ' + progress(head.upgrade) : text('empty'));
+                if (head.kind) installed++;
+                set('head_' + face, head.kind ? text('kind_' + head.kind) + ' T' + head.tier + '  ' + Math.round(head.health) + '/' + Math.round(head.maxHealth) + '  ' + text('shield') + ' ' + head.shield + '  ' + text('state_' + head.state) : text('empty'));
+                set('head_job_' + face, head.kind ? progress(head.upgrade) : '');
                 set('priority_' + face, text(head.priority || 'nearest'));
                 document.getElementById('priority_' + face).disabled = !state.priorityEnabled || !head.kind;
             }
+            set('head_capacity', text('head_capacity') + ': ' + installed + ' / ' + [1, 2, 3, 4, 6][state.tier - 1]);
         } else {
             set('machine_status',text('health') + ': ' + Math.round(state.health) + '  ' + text('shield') + ': ' + state.shield);
             set('burn_status',text('burn') + ': ' + state.burn);
