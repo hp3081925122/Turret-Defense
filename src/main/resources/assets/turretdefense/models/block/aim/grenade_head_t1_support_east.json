@@ -1,0 +1,214 @@
+{
+  "textures": {
+    "barrel": "turretdefense:block/turret/barrel_t1",
+    "metal": "turretdefense:block/turret/metal_t1",
+    "trim": "turretdefense:block/turret/trim_t1",
+    "particle": "turretdefense:block/turret/metal_t1"
+  },
+  "elements": [
+    {
+      "from": [
+        14.0,
+        2.0,
+        2.0
+      ],
+      "to": [
+        16.0,
+        14.0,
+        14.0
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            14.0,
+            2.0,
+            16.0,
+            14.0
+          ],
+          "texture": "#metal"
+        },
+        "up": {
+          "uv": [
+            14.0,
+            2.0,
+            16.0,
+            14.0
+          ],
+          "texture": "#metal"
+        },
+        "north": {
+          "uv": [
+            0.0,
+            2.0,
+            2.0,
+            14.0
+          ],
+          "texture": "#metal"
+        },
+        "south": {
+          "uv": [
+            14.0,
+            2.0,
+            16.0,
+            14.0
+          ],
+          "texture": "#metal"
+        },
+        "west": {
+          "uv": [
+            2.0,
+            2.0,
+            14.0,
+            14.0
+          ],
+          "texture": "#metal"
+        },
+        "east": {
+          "uv": [
+            2.0,
+            2.0,
+            14.0,
+            14.0
+          ],
+          "texture": "#metal"
+        }
+      }
+    },
+    {
+      "from": [
+        11.0,
+        5.5,
+        5.5
+      ],
+      "to": [
+        14.0,
+        10.5,
+        10.5
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            11.0,
+            5.5,
+            14.0,
+            10.5
+          ],
+          "texture": "#barrel"
+        },
+        "up": {
+          "uv": [
+            11.0,
+            5.5,
+            14.0,
+            10.5
+          ],
+          "texture": "#barrel"
+        },
+        "north": {
+          "uv": [
+            2.0,
+            5.5,
+            5.0,
+            10.5
+          ],
+          "texture": "#barrel"
+        },
+        "south": {
+          "uv": [
+            11.0,
+            5.5,
+            14.0,
+            10.5
+          ],
+          "texture": "#barrel"
+        },
+        "west": {
+          "uv": [
+            5.5,
+            5.5,
+            10.5,
+            10.5
+          ],
+          "texture": "#barrel"
+        },
+        "east": {
+          "uv": [
+            5.5,
+            5.5,
+            10.5,
+            10.5
+          ],
+          "texture": "#barrel"
+        }
+      }
+    },
+    {
+      "from": [
+        10.0,
+        4.5,
+        4.5
+      ],
+      "to": [
+        12.0,
+        11.5,
+        11.5
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            10.0,
+            4.5,
+            12.0,
+            11.5
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            10.0,
+            4.5,
+            12.0,
+            11.5
+          ],
+          "texture": "#trim"
+        },
+        "north": {
+          "uv": [
+            4.0,
+            4.5,
+            6.0,
+            11.5
+          ],
+          "texture": "#trim"
+        },
+        "south": {
+          "uv": [
+            10.0,
+            4.5,
+            12.0,
+            11.5
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            4.5,
+            4.5,
+            11.5,
+            11.5
+          ],
+          "texture": "#trim"
+        },
+        "east": {
+          "uv": [
+            4.5,
+            4.5,
+            11.5,
+            11.5
+          ],
+          "texture": "#trim"
+        }
+      }
+    }
+  ]
+}

@@ -10,6 +10,25 @@
     "turretdefense:ammo_arc_cell",
     "turretdefense:ammo_hv_arc_cell",
     "turretdefense:ammo_decider",
-    "turretdefense:ammo_finality"
+    "turretdefense:ammo_finality",
+    "turretdefense:ammo_gravity_shell",
+    "turretdefense:ammo_singularity",
+    "turretdefense:ammo_rail_slug",
+    "turretdefense:ammo_advanced_rail_slug",
+    "turretdefense:ammo_phase_round",
+    "turretdefense:ammo_void_round",
+    "turretdefense:ammo_sniper_round",
+    "turretdefense:ammo_precision_round",
+    "turretdefense:ammo_arbiter_round",
+    "turretdefense:ammo_verdict_round",
+    "turretdefense:ammo_fusion_fuel",
+    "turretdefense:ammo_high_energy_fusion",
+    "turretdefense:ammo_acid",
+    "turretdefense:ammo_strong_acid",
+    "turretdefense:ammo_frost",
+    "turretdefense:ammo_absolute_zero",
+    "turretdefense:ammo_emp",
+    "turretdefense:ammo_advanced_emp",
+    "turretdefense:ammo_graviton"
   ]
 }

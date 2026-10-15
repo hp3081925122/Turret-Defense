@@ -8,6 +8,18 @@ plugins {
 }
 
 repositories {
+    if (file('D:/AI临时文件/turret-defense-dev/ae2-reference/maven').exists()) {
+        maven {
+            name = 'LocalValidationDependencies'
+            url = uri('D:/AI临时文件/turret-defense-dev/ae2-reference/maven')
+            content { includeGroup 'local.validation'; includeGroup 'org.appliedenergistics' }
+        }
+    }
+    maven {
+        name = 'CurseMaven'
+        url = 'https://cursemaven.com'
+        content { includeGroup 'curse.maven' }
+    }
     if (project.hasProperty('withClientMcp')) {
         maven {
             url = uri('D:/AI临时文件/turret-defense-dev/mcp-maven')
@@ -87,7 +99,7 @@ minecraft {
         gameTestServer {
             def phase = project.findProperty('persistencePhase') ?: 'none'
             workingDirectory file(project.findProperty('testRunDirectory') ?: (phase in ['seed','verify'] ? 'D:/AI临时文件/turret-defense-dev/persistence-server' : "D:/AI临时文件/turret-defense-dev/gametest-runs/${System.currentTimeMillis()}"))
-            property 'forge.enabledGameTestNamespaces', phase in ['seed','verify'] ? 'turretdefense_persistence' : project.mod_id
+            property 'forge.enabledGameTestNamespaces', phase in ['seed','verify'] ? 'turretdefense_persistence' : (project.findProperty('testNamespaces') ?: 'turretdefense,turretdefense_expansion')
             property 'turretdefense.persistencePhase', project.findProperty('persistencePhase') ?: 'none'
         }
 
@@ -112,6 +124,12 @@ dependencies {
     compileOnly fg.deobf("mezz.jei:jei-1.20.1-common-api:${project.jei_version}")
     if (!project.hasProperty('withoutJei')) runtimeOnly fg.deobf("mezz.jei:jei-1.20.1-forge:${project.jei_version}")
     if (project.hasProperty('withClientMcp')) runtimeOnly fg.deobf('local.validation:minecraft-mcp-forge:0.1.1-local')
+    def ae2Dependency = file('D:/AI临时文件/turret-defense-dev/ae2-reference/maven/local/validation/ae2-forge/15.4.11/ae2-forge-15.4.11.jar').exists() ? 'local.validation:ae2-forge:15.4.11' : 'curse.maven:applied-energistics-2-223794:8991271'
+    compileOnly fg.deobf(ae2Dependency)
+    if (project.hasProperty('withAe2')) {
+        runtimeOnly fg.deobf(ae2Dependency)
+        runtimeOnly fg.deobf('org.appliedenergistics:guideme:20.1.15')
+    }
 }
 
 // 统一 Kotlin、Java 和资源输出目录，满足 KFF 开发环境要求。
@@ -152,6 +170,8 @@ tasks.named('jar', Jar).configure {
     exclude 'com/turretdefense/ui/gametest/**'
     exclude 'data/turretdefense/structures/gametest_*.nbt'
     exclude 'data/turretdefense_persistence/structures/**'
+    exclude 'data/turretdefense_expansion/**'
+    exclude 'data/turretdefense_ae2/**'
     manifest {
         attributes([
                 'Specification-Title': project.mod_id,

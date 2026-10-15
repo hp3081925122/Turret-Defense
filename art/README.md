@@ -1,13 +1,27 @@
-# 美术占位与替换
+# 美术资源与生成脚本
 
-用户要求：建模、美术先使用占位，后续由用户补充。
+按开发文档 §4.11.3，AI 绘制的资源全部由本目录的脚本可复现生成，不提交建模工具导出物。
 
-- `src/main/resources/assets/turretdefense/models/block/placeholder.json`：原版铁块立方体。
-- `src/main/resources/assets/turretdefense/models/item/placeholder.json`：引用通用方块模型。
+## 炮塔方块模型 `turret_models/gen_turrets.py`
 
-已注册方块与物品分别引用 `models/block/*_t1.json` 至 `*_t5.json` 和对应 `models/item/`。七个 `blockstates/` 文件驱动等级与朝向。
-塔头占位模型由基座和直立炮管组成；`FACING` 指向底座，模型向相反方向伸出。
-物品图标引用原版铁、石英、紫水晶、铜、火药等资源，方便区分类型。
-正式资源使用稳定路径，替换模型和贴图无需改变玩法 ID。
-音效与粒子引用原版注册项，不复制 Minecraft 原版资源文件。
-本次不制作复杂模型；用户可将后续 Blockbench 源文件放入本目录。
+```
+python art/turret_models/gen_turrets.py src/main/resources/assets/turretdefense [预览输出目录]
+```
+
+输出（会覆盖同名文件）：
+- `models/block/<种类>_head_t1..t5.json`：完整模型（物品与远距离静态显示）。
+- `models/block/aim/<种类>_head_tN_barrel.json`：可旋转炮管，旋转中心为 (8, 9, 8)，沿 +Y 伸出。
+- `models/block/aim/<种类>_head_tN_support_<朝向>.json`：六向固定支座，支座保持四向对称，远近模型切换时不会扭转。
+- `models/block/turret_base_t1..t5.json`、`base_core_t1..t5.json`。
+- `textures/block/turret/*.png`：分等级的机身、饰边、炮管材质，各炮塔的发光材质，以及底座和核心贴图。
+
+等级规则：T2 加侧装甲和角螺栓，T3 加前后装甲和支撑肋，T4 加发光条，T5 加立柱和侧发光；各炮塔的炮管随等级加长或增加部件。
+新增炮塔种类时，在 `KINDS` 和 `KIND_GLOW` 中各登记一项。脚本自带同向共面检查，输出 `coplanar issues: 0` 才算通过。
+
+## 物品图标 `item_textures/gen_items.py`
+
+```
+python art/item_textures/gen_items.py src/main/resources/assets/turretdefense/textures/item <预览图路径>
+```
+
+生成 36 个 16x16 平面物品材质。

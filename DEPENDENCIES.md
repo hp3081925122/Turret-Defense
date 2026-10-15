@@ -39,3 +39,13 @@ Forge 开发运行启用依赖 refmap 的 SRG→official 映射，映射文件�
 原工具HTTP监听所有网卡。本次仅在 `D:/AI临时文件/turret-defense-dev/mcp-maven/` 制作验证副本，将HTTP服务器两条绑定路径改成127.0.0.1，版本坐标为 `local.validation:minecraft-mcp-forge:0.1.1-local`，SHA-256为 `ad576ca804f9e2baa9402f1c3fb46301175512e9af9e35f12b32310bf2d9b358`。通过字节码、实际PID和监听地址核对，开发端口9786仅监听本机。游戏状态查询和真实帧缓冲截图成功；该次客户端之后正常退出，不能据此声称完成GUI交互验收。
 
 只有显式使用 `-PwithClientMcp` 才加入开发运行依赖；`-PclientRunDirectory=绝对路径` 可指定隔离客户端。默认运行与正式JAR均不包含该工具，未写入 `mods.toml`。
+
+## AE2软联动
+
+2026-10-15核对Minecraft 1.20.1 Forge的AE2 15.4.11。官方标签源码：[forge/v15.4.11](https://github.com/AppliedEnergistics/Applied-Energistics-2/releases/tag/forge/v15.4.11)，发布JAR使用`curse.maven:applied-energistics-2-223794:8991271`，原文件未修改。许可证按上游仓库LGPL-3.0及附加许可条件记录；不复制或捆绑AE2代码、资源或JAR。
+
+引入目的是核心从ME网补充弹药、提取能量和输出战利品。编译期仅compileOnly；指定`-PwithAe2`才加入开发运行。AE2当前所需GuideME使用`org.appliedenergistics:guideme:20.1.15`，许可证见其发布包（LGPL/MIT/Apache相关声明），来源：[官方发布页](https://guideme.appliedenergistics.org/downloads/)。两者都不写入本模组mods.toml，也不随本模组发布。
+
+已核对IGridNode/StorageHelper/IActionSource/IPlayerRegistry等当前源码接口，所有AE2类型隔离于Ae2Compat类，确认ModList中有ae2才通过延迟工厂加载。节点必须与核心同主人或主人被核心信任；先模拟再提交，返回实际转移量。
+
+本机ForgeGradle在线解析发生TLS错误，未禁用证书验证。验证环境将原AE2 JAR原样镜像到`D:/AI临时文件/turret-defense-dev/ae2-reference/maven`，使用`local.validation:ae2-forge:15.4.11`坐标；源不存在时构建脚本回落上述官方发布坐标。镜像只为本机离线映射验证，不是二次发行。GuideME使用官方JAR和POM的本地镜像。真实网络端到端测试结果在后续功能开发记录登记，不以编译或空测试启动代替。

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "turretdefense:item/core_module_wireless"
+  }
+}

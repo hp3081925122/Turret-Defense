@@ -5,6 +5,15 @@
     "turretdefense:ammo_hv_particle_clip",
     "turretdefense:ammo_he_grenade",
     "turretdefense:ammo_hv_arc_cell",
-    "turretdefense:ammo_finality"
+    "turretdefense:ammo_finality",
+    "turretdefense:ammo_singularity",
+    "turretdefense:ammo_advanced_rail_slug",
+    "turretdefense:ammo_void_round",
+    "turretdefense:ammo_precision_round",
+    "turretdefense:ammo_verdict_round",
+    "turretdefense:ammo_high_energy_fusion",
+    "turretdefense:ammo_strong_acid",
+    "turretdefense:ammo_absolute_zero",
+    "turretdefense:ammo_advanced_emp"
   ]
 }

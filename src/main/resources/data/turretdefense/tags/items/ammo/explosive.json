@@ -4,6 +4,11 @@
     "turretdefense:ammo_grenade",
     "turretdefense:ammo_he_grenade",
     "turretdefense:ammo_decider",
-    "turretdefense:ammo_finality"
+    "turretdefense:ammo_finality",
+    "turretdefense:ammo_gravity_shell",
+    "turretdefense:ammo_singularity",
+    "turretdefense:ammo_emp",
+    "turretdefense:ammo_advanced_emp",
+    "turretdefense:ammo_graviton"
   ]
 }

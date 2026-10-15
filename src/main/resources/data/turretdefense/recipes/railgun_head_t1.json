@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IRI",
+    "IRI",
+    " C "
+  ],
+  "key": {
+    "I": {
+      "tag": "forge:ingots/iron"
+    },
+    "R": {
+      "item": "minecraft:iron_block"
+    },
+    "C": {
+      "tag": "forge:components/turret_core"
+    }
+  },
+  "result": {
+    "item": "turretdefense:railgun_head_t1",
+    "count": 1
+  }
+}

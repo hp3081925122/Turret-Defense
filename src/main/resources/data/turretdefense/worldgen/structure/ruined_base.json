@@ -1,0 +1,7 @@
+{
+  "type": "turretdefense:ruined_base",
+  "biomes": "#turretdefense:has_structure/ruined_base",
+  "step": "surface_structures",
+  "spawn_overrides": {},
+  "terrain_adaptation": "beard_thin"
+}

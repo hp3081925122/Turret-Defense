@@ -41,6 +41,8 @@ object ModContent {
             "module_damage_amp_1","module_fire_rate_1","module_shield_boost_1","module_armor_plate","module_target_priority","module_energy_saver_1","module_self_destruct","module_overload_core").forEach { id ->
             ALL_ITEMS[id] = ITEMS.register(id) { Item(Item.Properties()) }
         }
+        (com.turretdefense.turret.ModuleEffect.ALL.map { it.id } + listOf("ammo_gravity_shell", "ammo_singularity", "ammo_rail_slug", "ammo_advanced_rail_slug", "ammo_phase_round", "ammo_void_round", "ammo_sniper_round", "ammo_precision_round", "ammo_arbiter_round", "ammo_verdict_round", "ammo_fusion_fuel", "ammo_high_energy_fusion", "ammo_acid", "ammo_strong_acid", "ammo_frost", "ammo_absolute_zero", "ammo_emp", "ammo_advanced_emp", "ammo_graviton")).filterNot { ALL_ITEMS.containsKey(it) }.forEach { id -> ALL_ITEMS[id] = ITEMS.register(id) { Item(Item.Properties()) } }
+        com.turretdefense.core.CoreModule.ALL.forEach { module -> ALL_ITEMS[module.id] = ITEMS.register(module.id) { Item(Item.Properties()) } }
     }
     val TAB = TABS.register("main") {
         CreativeModeTab.builder().title(Component.translatable("itemGroup.turretdefense"))

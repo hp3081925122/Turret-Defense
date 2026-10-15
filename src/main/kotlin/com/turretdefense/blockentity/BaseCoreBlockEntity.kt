@@ -17,7 +17,7 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.tags.TagKey
-import net.minecraft.world.entity.monster.Monster
+import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
@@ -37,7 +37,10 @@ import kotlin.math.roundToInt
 
 // 核心独占扫描、供能、供弹与权限管理；只遍历登记底座及已加载区块。
 class BaseCoreBlockEntity(pos: BlockPos,state: BlockState) : MachineBlockEntity(ModContent.CORE_BE.get(),pos,state) {
-    val stats get() = TurretStatsTable.CORE[tier-1]
+    var coreModules: List<com.turretdefense.core.CoreModule> = emptyList()
+        private set
+    private var moduleStats: com.turretdefense.turret.CoreStats? = null
+    val stats get() = moduleStats ?: TurretStatsTable.CORE[tier-1]
     val scanRadius get() = min(stats.range,Config.scanRadiusCap.get().toDouble())
     val center: Vec3 = Vec3.atCenterOf(pos)
     val managedBases = Long2ObjectOpenHashMap<TurretBaseBlockEntity>()
@@ -56,6 +59,7 @@ class BaseCoreBlockEntity(pos: BlockPos,state: BlockState) : MachineBlockEntity(
     var scanPeakNanos = 0L
         private set
     fun resetProbe() { scanCount = 0; scanTotalNanos = 0; scanPeakNanos = 0 }
+    fun requestTargetRefresh() { nextScan = 0L }
     private var nextScan = 0L
     private var nextJudgment = 0L
     private var lastDamage = 0L
@@ -67,17 +71,37 @@ class BaseCoreBlockEntity(pos: BlockPos,state: BlockState) : MachineBlockEntity(
     private var cachedScanRadius = -1.0
     private var cachedScanVertical = -1.0
     private var scanBox = AABB(pos)
-    val inventory = object : ItemStackHandler(46) {
+    // 旧0–45槽保持不变，新模块槽接在末尾；旧库存读入时扩容而不移动物品。
+    val inventory = object : ItemStackHandler(51) {
+        override fun deserializeNBT(nbt: CompoundTag) {
+            val compatible = nbt.copy(); compatible.putInt("Size",51)
+            super.deserializeNBT(compatible); refreshCoreModules()
+        }
+        override fun getSlotLimit(slot: Int) = if (slot >= 46) 1 else 64
         override fun isItemValid(slot: Int,stack: ItemStack) = when (slot) {
             0 -> ForgeHooks.getBurnTime(stack,RecipeType.SMELTING) > 0
             in 1..18 -> stack.`is`(ModTags.AMMO)
+            in 46..50 -> {
+                val module = com.turretdefense.core.CoreModule.from(stack)
+                slot < 46+tier && module != null && (com.turretdefense.core.CoreConfig.duplicates.get() || (46 until 46+tier).none { it != slot && com.turretdefense.core.CoreModule.from(getStackInSlot(it))?.category == module.category })
+            }
             else -> true
         }
-        override fun onContentsChanged(slot: Int) { setChanged() }
+        override fun onContentsChanged(slot: Int) { setChanged(); if (slot >= 46) refreshCoreModules() }
     }
     val energy = EnergyBuffer({ stats.energy },{ Config.externalFE.get() },{ setChanged() },{ lastExternalInput = level?.gameTime ?: 0 })
     private var itemCap = LazyOptional.of { inventory }
     private var energyCap = LazyOptional.of { energy }
+    fun refreshCoreModules() {
+        coreModules = (46 until 46+tier).mapNotNull { com.turretdefense.core.CoreModule.from(inventory.getStackInSlot(it)) }
+        var value = TurretStatsTable.CORE[tier-1]
+        coreModules.forEach { value = it.modify(value) }
+        moduleStats = value
+        energy.stored = energy.stored
+        health = min(health,stats.health*Config.healthMultiplier.get()); shield = min(shield,(stats.shield*Config.shieldMultiplier.get()).roundToInt())
+        managedBases.values.forEach { base -> base.heads.values.forEach { it.refreshStats() } }
+        setChanged()
+    }
     override fun <T: Any?> getCapability(cap: Capability<T>,side: Direction?): LazyOptional<T> {
         if (cap === ForgeCapabilities.ITEM_HANDLER) return itemCap.cast()
         if (cap === ForgeCapabilities.ENERGY) return energyCap.cast()
@@ -108,6 +132,7 @@ class BaseCoreBlockEntity(pos: BlockPos,state: BlockState) : MachineBlockEntity(
     override fun onLoad() {
         super.onLoad()
         val world = level as? ServerLevel ?: return
+        refreshCoreModules()
         if (!initialized) { health = stats.health*Config.healthMultiplier.get(); shield = (stats.shield*Config.shieldMultiplier.get()).roundToInt(); initialized = true }
         currentScanInterval = Config.scanInterval.get()
         LevelRuntime.get(world).cores.put(blockPos.asLong(),this)
@@ -146,6 +171,8 @@ class BaseCoreBlockEntity(pos: BlockPos,state: BlockState) : MachineBlockEntity(
         }
         if (now >= nextScan) scan(world,now)
         if (now >= nextJudgment && powerState >= 3) judgment(world,now)
+        com.turretdefense.core.DeflectionShield.tick(this)
+        com.turretdefense.core.CoreAutomation.tick(this)
         LevelRuntime.get(world).recordNanos(start)
     }
     private fun generate(now: Long) {
@@ -169,7 +196,8 @@ class BaseCoreBlockEntity(pos: BlockPos,state: BlockState) : MachineBlockEntity(
         val bases = managedBases.values
         if (bases.isEmpty()) return
         // 分配时保留严重不足阈值对应的核心缓存，防止无线传输本身把核心抽到休眠。
-        var budget = (energy.stored-(stats.energy*Config.criticalThreshold.get()).toInt()).coerceAtLeast(0)
+        val reserve = (Config.criticalThreshold.get()-if (coreModules.any { it.category == "wireless" }) com.turretdefense.core.CoreConfig.wirelessReserveReduction.get() else 0.0).coerceAtLeast(0.0)
+        var budget = (energy.stored-(stats.energy*reserve).toInt()).coerceAtLeast(0)
         var remaining = bases.size
         for (base in bases) {
             if (base.isRemoved || !inRange(base.blockPos)) { remaining--; continue }
@@ -208,7 +236,7 @@ class BaseCoreBlockEntity(pos: BlockPos,state: BlockState) : MachineBlockEntity(
             scanBox = AABB(center.x-radius,center.y-vertical,center.z-radius,center.x+radius,center.y+vertical,center.z+radius)
             cachedScanRadius = radius; cachedScanVertical = vertical
         }
-        val targets = world.getEntitiesOfClass(Monster::class.java,scanBox) { it.isAlive && !it.isRemoved && !it.isSpectator && it.distanceToSqr(center) <= radius*radius }.sortedBy { it.distanceToSqr(center) }
+        val targets = world.getEntitiesOfClass(Mob::class.java,scanBox) { it.isAlive && !it.isRemoved && !it.isSpectator && it.distanceToSqr(center) <= radius*radius && com.turretdefense.targeting.TargetingRules.candidate(this,it) }.sortedBy { it.distanceToSqr(center) }
         snapshot = ThreatSnapshot(targets,DoubleArray(targets.size) { targets[it].distanceToSqr(center) },now)
         managedBases.values.forEach { base -> base.heads.values.forEach { it.acceptThreats(snapshot) } }
         val cost = System.nanoTime()-start
@@ -240,7 +268,7 @@ class BaseCoreBlockEntity(pos: BlockPos,state: BlockState) : MachineBlockEntity(
     }
     fun acceptLoot(stack: ItemStack): ItemStack {
         var remaining = stack
-        for (slot in 19 until inventory.slots) { remaining = inventory.insertItem(slot,remaining,false); if (remaining.isEmpty) return remaining }
+        for (slot in 19..45) { remaining = inventory.insertItem(slot,remaining,false); if (remaining.isEmpty) return remaining }
         if (!remaining.isEmpty && Config.dropOnFull.get()) {
             (level as? ServerLevel)?.let { Block.popResource(it,blockPos.above(),remaining); remaining = ItemStack.EMPTY }
         } else warn("message.turretdefense.core_full")
@@ -259,7 +287,7 @@ class BaseCoreBlockEntity(pos: BlockPos,state: BlockState) : MachineBlockEntity(
         setChanged()
         if (health <= 0) { destroyCore(); (level as? ServerLevel)?.removeBlock(blockPos,false) }
     }
-    fun refreshTier() { health = min(health,stats.health*Config.healthMultiplier.get()); energy.stored = energy.stored; scheduleLoadedChunkRegistration(level as? ServerLevel ?: return); setChanged() }
+    fun refreshTier() { refreshCoreModules(); scheduleLoadedChunkRegistration(level as? ServerLevel ?: return); setChanged() }
     fun destroyCore() {
         if (decommissioned) return
         val world = level as? ServerLevel ?: return

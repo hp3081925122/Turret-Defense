@@ -2,6 +2,30 @@
   "replace": false,
   "values": [
     "turretdefense:module_self_destruct",
-    "turretdefense:module_overload_core"
+    "turretdefense:module_vengeance",
+    "turretdefense:module_mode_switch",
+    "turretdefense:module_projectile_deflector",
+    "turretdefense:module_overload_core",
+    "turretdefense:module_cluster_round_1",
+    "turretdefense:module_cluster_round_2",
+    "turretdefense:module_cluster_round_3",
+    "turretdefense:module_ricochet_round_1",
+    "turretdefense:module_ricochet_round_2",
+    "turretdefense:module_ricochet_round_3",
+    "turretdefense:module_charge_1",
+    "turretdefense:module_charge_2",
+    "turretdefense:module_charge_3",
+    "turretdefense:module_acid_coating_1",
+    "turretdefense:module_acid_coating_2",
+    "turretdefense:module_acid_coating_3",
+    "turretdefense:module_barrage_1",
+    "turretdefense:module_barrage_2",
+    "turretdefense:module_barrage_3",
+    "turretdefense:module_homing_round",
+    "turretdefense:module_critical_1",
+    "turretdefense:module_critical_2",
+    "turretdefense:module_critical_3",
+    "turretdefense:module_armor_penetration",
+    "turretdefense:module_anti_invisibility"
   ]
 }

@@ -27,19 +27,20 @@ object UiNetwork {
     data class StatePacket(val json: String)
     data class ActionPacket(val position: BlockPos,val action: String,val face: Int,val value: String)
     data class AlertPacket(val key: String)
-    private data class Viewer(val player: ServerPlayer,val position: BlockPos,val menu: AbstractContainerMenu,var nextUpdate: Long = 0,var lastAction: Long = Long.MIN_VALUE/2)
+    private data class Viewer(val player: ServerPlayer,val position: BlockPos,val menu: AbstractContainerMenu,var nextUpdate: Long = 0,var lastAction: Long = Long.MIN_VALUE/2,val page: String = "machine",val detailFace: Int = -1)
     private val viewers = mutableMapOf<UUID,Viewer>()
     val gson = Gson()
-    val channel = NetworkRegistry.newSimpleChannel(ResourceLocation.fromNamespaceAndPath(TurretDefense.MOD_ID,"ui"),{ "1" },{ it == "1" },{ it == "1" })
+    val channel = NetworkRegistry.newSimpleChannel(ResourceLocation.fromNamespaceAndPath(TurretDefense.MOD_ID,"ui"),{ "3" },{ it == "3" },{ it == "3" })
     fun register() {
         channel.messageBuilder(StatePacket::class.java,0,NetworkDirection.PLAY_TO_CLIENT)
             .encoder { packet,buffer -> buffer.writeUtf(packet.json,131072) }.decoder { StatePacket(it.readUtf(131072)) }
             .consumerMainThread { packet,context -> ClientBindings.receiveState(packet.json); context.get().setPacketHandled(true) }.add()
         channel.messageBuilder(ActionPacket::class.java,1,NetworkDirection.PLAY_TO_SERVER)
-            .encoder { packet,buffer -> buffer.writeBlockPos(packet.position); buffer.writeUtf(packet.action,32); buffer.writeVarInt(packet.face); buffer.writeUtf(packet.value,128) }
-            .decoder { ActionPacket(it.readBlockPos(),it.readUtf(32),it.readVarInt(),it.readUtf(128)) }
+            .encoder { packet,buffer -> buffer.writeBlockPos(packet.position); buffer.writeUtf(packet.action,32); buffer.writeVarInt(packet.face); buffer.writeUtf(packet.value,16384) }
+            .decoder { ActionPacket(it.readBlockPos(),it.readUtf(32),it.readVarInt(),it.readUtf(16384)) }
             .consumerMainThread { packet,context -> context.get().sender?.let { action(it,packet) }; context.get().setPacketHandled(true) }.add()
         EffectBatch.register(channel)
+        AimUpdates.register(channel)
         channel.messageBuilder(AlertPacket::class.java,3,NetworkDirection.PLAY_TO_CLIENT)
             .encoder { packet,buffer -> buffer.writeUtf(packet.key,128) }.decoder { AlertPacket(it.readUtf(128)) }
             .consumerMainThread { packet,context -> ClientBindings.receiveAlert(packet.key); context.get().setPacketHandled(true) }.add()
@@ -54,20 +55,50 @@ object UiNetwork {
             if (core) {
                 slots.slot("#fuel").filter(FilterUtil.custom { stack -> net.minecraftforge.common.ForgeHooks.getBurnTime(stack,net.minecraft.world.item.crafting.RecipeType.SMELTING) > 0 })
                 for (index in 0 until 18) slots.slot("#ammo_$index").filter(FilterUtil.tag(ModTags.AMMO))
+                for (index in 0 until 5) slots.slot("#core_module_$index").filter(FilterUtil.tag("turretdefense:core_module"))
             } else for (index in 0 until 5) slots.slot("#module_$index").filter(FilterUtil.tag("turretdefense:module"))
             slots.player()
         }
         viewers[player.uuid] = Viewer(player,pos,player.containerMenu)
+        TurretDefense.LOGGER.debug("Opened turret menu: player={}, type={}, menuId={}, slots={}, pos={}",player.scoreboardName,if (core) "core" else "base",player.containerMenu.containerId,player.containerMenu.slots.size,pos)
         update(viewers.getValue(player.uuid))
     }
-    private fun action(player: ServerPlayer,packet: ActionPacket) {
+    // 帮助与详情仍由服务端创建菜单，返回原机器时重新建立真实槽位与权限。
+    private fun openPage(player: ServerPlayer,pos: BlockPos,page: String,face: Int) {
+        ApricityUIServerUtil.menu(player,if (page == "help") "screens/help.html" else "screens/head_details.html").bind { }
+        viewers[player.uuid] = Viewer(player,pos,player.containerMenu,page=page,detailFace=face)
+        update(viewers.getValue(player.uuid))
+    }
+    internal fun action(player: ServerPlayer,packet: ActionPacket) {
         val viewer = viewers[player.uuid] ?: return
         val now = player.serverLevel().gameTime
         if (viewer.position != packet.position || viewer.menu !== player.containerMenu || now-viewer.lastAction < 2 || player.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(packet.position)) > 64.0) return
         val entity = player.serverLevel().getBlockEntity(packet.position) as? MachineBlockEntity ?: return
         if (!entity.allowed(player)) return
         viewer.lastAction = now
+        when (packet.action) {
+            "open_help" -> { openPage(player,packet.position,"help",packet.face); return }
+            "open_details" -> if (entity is TurretBaseBlockEntity && packet.face in 0..5) { openPage(player,packet.position,"details",packet.face); return }
+            "back" -> { open(player,packet.position); return }
+        }
         val success = when (packet.action) {
+            "switch_mode" -> {
+                val head = if (entity is TurretBaseBlockEntity && packet.face in 0..5) entity.heads[Direction.values()[packet.face]] else null
+                if (head == null || now < head.persistentData.getLong("ModeSwitchUntil")) false
+                else if (head.kind === com.turretdefense.turret.TurretKind.Arbiter || com.turretdefense.turret.ModuleRuntime.switchMode(head)) {
+                    if (head.kind === com.turretdefense.turret.TurretKind.Arbiter) head.attackMode = if (head.attackMode == "secondary") "primary" else "secondary"
+                    head.persistentData.putLong("ModeSwitchUntil",now+if (head.kind === com.turretdefense.turret.TurretKind.Arbiter && head.tier == 5) 30 else 60)
+                    head.refreshStats(); true
+                } else false
+            }
+            "target_policy" -> entity is TurretBaseBlockEntity && packet.face in 0..5 && packet.value in com.turretdefense.targeting.TargetingRules.POLICIES && entity.heads[Direction.values()[packet.face]]?.let { it.configureTargeting(packet.value); true } == true
+            "target_lists" -> {
+                val head = if (entity is TurretBaseBlockEntity && packet.face in 0..5) entity.heads[Direction.values()[packet.face]] else null
+                val json = runCatching { com.google.gson.JsonParser.parseString(packet.value).asJsonObject }.getOrNull()
+                val allowed = json?.get("allowed")?.let { runCatching { validatedTypes(it.asString) }.getOrNull() }
+                val denied = json?.get("denied")?.let { runCatching { validatedTypes(it.asString) }.getOrNull() }
+                if (head == null || allowed == null || denied == null) false else { head.configureTargeting(head.targetPolicy,allowed,denied); true }
+            }
             "upgrade_core" -> entity is BaseCoreBlockEntity && UpgradeRules.upgradeCore(player,entity)
             "upgrade_base" -> entity is TurretBaseBlockEntity && UpgradeRules.upgradeBase(player,entity)
             "upgrade_head" -> entity is TurretBaseBlockEntity && packet.face in 0..5 && entity.heads[Direction.values()[packet.face]]?.let { UpgradeRules.upgradeHead(player,it) } == true
@@ -103,16 +134,31 @@ object UiNetwork {
             if (now >= viewer.nextUpdate) { update(viewer); viewer.nextUpdate = now+10 }
         }
     }
+    private fun validatedTypes(value: String): Set<ResourceLocation>? {
+        val entries = value.split(',', ';', ' ', '\n').filter { it.isNotBlank() }
+        if (entries.size > 32) return null
+        val ids = entries.map { ResourceLocation.tryParse(it.trim().takeIf { text -> text.length <= 128 } ?: return null) ?: return null }
+        if (ids.any { !net.minecraftforge.registries.ForgeRegistries.ENTITY_TYPES.containsKey(it) }) return null
+        return ids.toSet()
+    }
     private fun job(machine: MachineBlockEntity): Map<String,Any> {
         val recipe = UpgradeRules.recipe(machine) ?: UpgradeRules.nextRecipe(machine)
         return mapOf("active" to (machine.upgradeJob != null),"paid" to (machine.upgradeJob?.paid ?: 0),"cost" to (recipe?.energyCost ?: 0),"materials" to (recipe?.costs?.map { mapOf("key" to (it.ingredient.items.firstOrNull()?.descriptionId ?: "ui.turretdefense.empty"),"count" to it.count) } ?: emptyList()),"available" to (recipe != null))
     }
-    private fun headState(head: TurretHeadBlockEntity) = mapOf("kind" to head.kind.id,"tier" to head.tier,"health" to head.health,"maxHealth" to head.effectiveStats.health,"shield" to head.shieldLayers,"maxShield" to head.effectiveStats.shield,"state" to head.status,"priority" to head.priority,"kills" to head.kills,"xp" to head.pendingXp,"upgrade" to job(head))
+    private fun headState(head: TurretHeadBlockEntity): Map<String,Any> {
+        val stats = head.effectiveStats
+        val ammo = if (head.tier == 4) head.kind.ammo4 else if (head.tier == 5) head.kind.ammo5 else null
+        return mapOf("kind" to head.kind.id,"tier" to head.tier,"health" to head.health,"maxHealth" to stats.health,"shield" to head.shieldLayers,"maxShield" to stats.shield,"state" to head.status,"priority" to head.priority,"kills" to head.kills,"xp" to head.pendingXp,"upgrade" to job(head),
+            "stats" to mapOf("damage" to stats.damage,"range" to stats.range,"energy" to stats.energy,"cooldown" to stats.cooldownTicks,"aoe" to stats.aoeRadius,"chain" to stats.chainCount,"pierce" to stats.pierceCount,"continuous" to head.kind.continuous),"ammo" to (ammo?.let { com.turretdefense.registry.ModContent.item(it).descriptionId } ?: ""),"mode" to head.attackMode,"modules" to (head.boundBase?.modules?.map { "item.turretdefense.${it.id}" } ?: emptyList<String>()),
+            "modeSwitch" to (head.kind === com.turretdefense.turret.TurretKind.Arbiter || head.boundBase?.modules?.contains(ModuleEffect.Mode) == true),"targetPolicy" to head.targetPolicy,"targetAllowList" to head.targetAllowList.map { it.toString() },"targetDenyList" to head.targetDenyList.map { it.toString() })
+    }
     private fun update(viewer: Viewer) {
         val world = viewer.player.serverLevel()
         val entity = world.getBlockEntity(viewer.position) as? MachineBlockEntity ?: return
         if (!entity.allowed(viewer.player)) return
         val state = linkedMapOf<String,Any>("x" to viewer.position.x,"y" to viewer.position.y,"z" to viewer.position.z,"dimension" to world.dimension().location().toString(),"tier" to entity.tier,"owner" to (entity.owner?.toString() ?: ""))
+        state["page"] = viewer.page; state["detailFace"] = viewer.detailFace
+        state["menuId"] = viewer.menu.containerId
         state["upgrade"] = job(entity)
         when (entity) {
             is TurretBaseBlockEntity -> {
@@ -126,6 +172,8 @@ object UiNetwork {
                 state["health"] = entity.health; state["shield"] = entity.shield; state["burn"] = entity.burnTicks; state["range"] = entity.stats.range
                 state["state"] = entity.powerState; state["scanInterval"] = entity.currentScanInterval; state["enemies"] = entity.snapshot.targets.size
                 state["trusted"] = com.turretdefense.network.TurretNetworkData.get(world).trustedPlayers(entity.blockPos.asLong()).map { it.toString() }
+                state["coreModules"] = entity.coreModules.map { "item.turretdefense.${it.id}" }
+                state["deflectionRange"] = entity.stats.deflectionRange
                 state["bases"] = entity.managedBases.values.map { base -> mapOf("pos" to base.blockPos.toShortString(),"tier" to base.tier,"energy" to base.energy.stored,"heads" to base.heads.values.map { headState(it) }) }
             }
         }

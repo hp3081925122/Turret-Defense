@@ -12,6 +12,7 @@ import com.turretdefense.ui.UiNetwork
 import net.minecraft.core.BlockPos
 import net.minecraft.gametest.framework.GameTest
 import net.minecraft.gametest.framework.GameTestHelper
+import net.minecraft.world.inventory.ClickType
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraftforge.common.ForgeHooks
@@ -40,17 +41,31 @@ class UiGameTests {
                     val menu = player.containerMenu as ApricityContainerMenu
                     val filters = (1..18).associateWith { FilterUtil.tag(ModTags.AMMO) }.toMutableMap()
                     filters[0] = FilterUtil.custom { ForgeHooks.getBurnTime(it,net.minecraft.world.item.crafting.RecipeType.SMELTING) > 0 }
+                    for (slot in 46..50) filters[slot] = FilterUtil.tag("turretdefense:core_module")
                     menu.installSlotFilters(mapOf("block_entity" to filters))
-                    helper.assertTrue(menu.slots.size == 82,"Core menu must expose 46 machine and 36 player slots")
-                    for (index in 0 until 46) {
+                    helper.assertTrue(menu.slots.size == 87,"Core menu must expose 51 machine and 36 player slots")
+                    for (index in 0 until 51) {
                         val slot = menu.slots[menu.resolveGlobalSlotIndex("block_entity",index)!!]
-                        val item = when (index) { 0 -> Items.COAL; in 1..18 -> ModContent.item("ammo_iron_slug"); else -> Items.DIAMOND }
+                        val item = when (index) { 0 -> Items.COAL; in 1..18 -> ModContent.item("ammo_iron_slug"); in 46..50 -> ModContent.item("core_module_capacity"); else -> Items.DIAMOND }
                         val stack = ItemStack(item)
                         helper.assertTrue(slot.mayPlace(stack),"Core slot $index must accept its intended item")
                         if (index <= 18) helper.assertTrue(!slot.mayPlace(ItemStack(Items.DIRT)),"Fuel and ammo slots must reject wrong items")
                         slot.set(stack); helper.assertTrue(core.inventory.getStackInSlot(index).count == 1,"Slot $index must update the real item capability")
                         helper.assertTrue(slot.remove(1).count == 1 && core.inventory.getStackInSlot(index).isEmpty,"Slot $index must support extraction")
                     }
+                    // 通过原版菜单点击入口验证光标携带栈，避免只调用底层槽位而漏测普通取放。
+                    val playerSlot = menu.resolveGlobalSlotIndex("player",0)!!
+                    val ammoSlot = menu.resolveGlobalSlotIndex("block_entity",1)!!
+                    player.inventory.items[0] = ItemStack(ModContent.item("ammo_iron_slug"),8)
+                    menu.clicked(playerSlot,0,ClickType.PICKUP,player)
+                    helper.assertTrue(menu.carried.count == 8 && player.inventory.items[0].isEmpty,"Left-click must pick the player stack onto the cursor")
+                    menu.clicked(ammoSlot,1,ClickType.PICKUP,player)
+                    helper.assertTrue(menu.carried.count == 7 && core.inventory.getStackInSlot(1).count == 1,"Right-click must deposit one round into the core")
+                    menu.clicked(ammoSlot,0,ClickType.PICKUP,player)
+                    helper.assertTrue(menu.carried.isEmpty && core.inventory.getStackInSlot(1).count == 8,"Left-click must deposit the cursor remainder")
+                    menu.clicked(ammoSlot,0,ClickType.PICKUP,player)
+                    menu.clicked(playerSlot,0,ClickType.PICKUP,player)
+                    helper.assertTrue(menu.carried.isEmpty && core.inventory.getStackInSlot(1).isEmpty && player.inventory.items[0].count == 8,"Pickup and return must conserve ammunition")
                     player.inventory.items[0] = ItemStack(ModContent.item("ammo_iron_slug"),64)
                     menu.quickMoveStack(player,menu.resolveGlobalSlotIndex("player",0)!!)
                     helper.assertTrue(core.inventory.getStackInSlot(1).count == 64 && player.inventory.items[0].isEmpty,"Shift-click must route matching ammunition into the core")
@@ -82,6 +97,20 @@ class UiGameTests {
                         slot.set(stack); helper.assertTrue(base.inventory.getStackInSlot(index).count == 1,"Base slot must update the real capability")
                         slot.remove(1); helper.assertTrue(base.inventory.getStackInSlot(index).isEmpty,"All base slots must support extraction")
                     }
+                    // 插件过滤拒绝放入时光标保留原物，缓存则接受原版普通点击取放。
+                    val playerSlot = menu.resolveGlobalSlotIndex("player",0)!!
+                    val moduleSlot = menu.resolveGlobalSlotIndex("block_entity",0)!!
+                    val cacheSlot = menu.resolveGlobalSlotIndex("block_entity",5)!!
+                    player.inventory.items[0] = ItemStack(Items.DIAMOND,8)
+                    menu.clicked(playerSlot,0,ClickType.PICKUP,player)
+                    menu.clicked(moduleSlot,0,ClickType.PICKUP,player)
+                    helper.assertTrue(menu.carried.count == 8 && base.inventory.getStackInSlot(0).isEmpty,"Rejected plugin input must preserve the cursor stack")
+                    menu.clicked(cacheSlot,1,ClickType.PICKUP,player)
+                    helper.assertTrue(menu.carried.count == 7 && base.inventory.getStackInSlot(5).count == 1,"Right-click must put one item into the cache")
+                    menu.clicked(cacheSlot,0,ClickType.PICKUP,player)
+                    menu.clicked(cacheSlot,0,ClickType.PICKUP,player)
+                    menu.clicked(playerSlot,0,ClickType.PICKUP,player)
+                    helper.assertTrue(menu.carried.isEmpty && base.inventory.getStackInSlot(5).isEmpty && player.inventory.items[0].count == 8,"Cache pickup and return must conserve items")
                     player.inventory.items[0] = ItemStack(Items.DIAMOND,64)
                     menu.quickMoveStack(player,menu.resolveGlobalSlotIndex("player",0)!!)
                     helper.assertTrue(base.inventory.getStackInSlot(5).count == 64,"Shift-click must skip plugin slots and use loot cache")

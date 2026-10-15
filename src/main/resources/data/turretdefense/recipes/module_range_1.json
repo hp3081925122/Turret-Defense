@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " R ",
+    "ICI",
+    " M "
+  ],
+  "key": {
+    "R": {
+      "tag": "forge:dusts/redstone"
+    },
+    "I": {
+      "tag": "forge:ingots/iron"
+    },
+    "C": {
+      "item": "minecraft:slime_ball"
+    },
+    "M": {
+      "item": "minecraft:spider_eye"
+    }
+  },
+  "result": {
+    "item": "turretdefense:module_range_1",
+    "count": 1
+  }
+}

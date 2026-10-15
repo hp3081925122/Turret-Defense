@@ -44,7 +44,7 @@ class UpgradeRecipe(private val recipeId: ResourceLocation,val machine: String,v
 class UpgradeSerializer : RecipeSerializer<UpgradeRecipe> {
     override fun fromJson(id: ResourceLocation,json: JsonObject): UpgradeRecipe {
         val machine = json.get("machine").asString; val tier = json.get("from_tier").asInt
-        require(machine in listOf("core","base","pulse","particle","grenade","laser","arc") && tier in 1..4)
+        require((machine in listOf("core","base") || TurretKind.byId(machine) != null) && tier in 1..4)
         val array = json.getAsJsonArray("materials"); require(array.size() in 1..8)
         val costs = array.map { element -> val entry = element.asJsonObject; val count = entry.get("count").asInt; require(count in 1..256); MaterialCost(Ingredient.fromJson(entry.get("ingredient")),count) }
         return UpgradeRecipe(id,machine,tier,costs)

@@ -1,0 +1,19 @@
+{
+  "type": "turretdefense:upgrade",
+  "machine": "arbiter",
+  "from_tier": 1,
+  "materials": [
+    {
+      "ingredient": {
+        "tag": "forge:ingots/iron"
+      },
+      "count": 8
+    },
+    {
+      "ingredient": {
+        "tag": "forge:dusts/redstone"
+      },
+      "count": 4
+    }
+  ]
+}

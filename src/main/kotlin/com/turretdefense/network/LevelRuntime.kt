@@ -26,11 +26,11 @@ class LevelRuntime(val level: ServerLevel) {
         val key = net.minecraft.world.level.ChunkPos.asLong(head.blockPos.x shr 4,head.blockPos.z shr 4)
         headChunks[key]?.let { it.remove(head); if (it.isEmpty()) headChunks.remove(key) }
     }
-    fun nearestHead(point: net.minecraft.world.phys.Vec3,range: Double): TurretHeadBlockEntity? {
+    fun nearestHead(point: net.minecraft.world.phys.Vec3,range: Double,attacker: net.minecraft.world.entity.Mob? = null): TurretHeadBlockEntity? {
         var nearest: TurretHeadBlockEntity? = null; var distance = range*range
         for (x in (kotlin.math.floor(point.x-range).toInt() shr 4)..(kotlin.math.floor(point.x+range).toInt() shr 4)) for (z in (kotlin.math.floor(point.z-range).toInt() shr 4)..(kotlin.math.floor(point.z+range).toInt() shr 4)) {
             val list = headChunks[net.minecraft.world.level.ChunkPos.asLong(x,z)] ?: continue
-            for (head in list) if (!head.isRemoved) { val square = head.center.distanceToSqr(point); if (square < distance) { distance = square; nearest = head } }
+            for (head in list) if (!head.isRemoved && !com.turretdefense.turret.ModuleRuntime.hidden(head,level.gameTime) && !com.turretdefense.turret.AdvancedAttacks.phaseHidden(head,level.gameTime) && (attacker == null || head.boundBase?.core?.let { !com.turretdefense.targeting.TargetingRules.friendly(it,attacker) } != false)) { val square = head.center.distanceToSqr(point); if (square < distance) { distance = square; nearest = head } }
         }
         return nearest
     }

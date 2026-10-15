@@ -5,7 +5,8 @@ data class TurretStats(
     val health: Double, val shield: Int, val damage: Double,
     val cooldownTicks: Int, val range: Double, val energy: Double,
     val aoeRadius: Double = 0.0, val chainCount: Int = 0,
-    val jumpRange: Double = 0.0, val pierceCount: Int = 0
+    val jumpRange: Double = 0.0, val pierceCount: Int = 0,
+    val armorPenetration: Double = 0.0, val minRange: Double = 0.0
 )
 
 data class CoreStats(
@@ -93,14 +94,24 @@ object TurretStatsTable {
 }
 
 // 类型顺序在存档发布后保持稳定；五个方块共用行为策略与方块实体类。
-sealed class TurretKind(val id: String, val stats: List<TurretStats>, val ammo4: String?, val ammo5: String?) {
+sealed class TurretKind(val id: String, val stats: List<TurretStats>, val ammo4: String?, val ammo5: String?,val continuous: Boolean = false) {
     object Pulse : TurretKind("pulse",TurretStatsTable.PULSE,"ammo_iron_slug","ammo_pulse_core")
     object Particle : TurretKind("particle",TurretStatsTable.PARTICLE,"ammo_particle_clip","ammo_hv_particle_clip")
     object Grenade : TurretKind("grenade",TurretStatsTable.GRENADE,"ammo_grenade","ammo_he_grenade")
-    object Laser : TurretKind("laser",TurretStatsTable.LASER,null,null)
+    object Laser : TurretKind("laser",TurretStatsTable.LASER,null,null,true)
     object Arc : TurretKind("arc",TurretStatsTable.ARC,"ammo_arc_cell","ammo_hv_arc_cell")
+    object Gravity : TurretKind("gravity",AdvancedStats.GRAVITY,"ammo_gravity_shell","ammo_singularity")
+    object Railgun : TurretKind("railgun",AdvancedStats.RAILGUN,"ammo_rail_slug","ammo_advanced_rail_slug")
+    object Phase : TurretKind("phase",AdvancedStats.PHASE,"ammo_phase_round","ammo_void_round")
+    object Sniper : TurretKind("sniper",AdvancedStats.SNIPER,"ammo_sniper_round","ammo_precision_round")
+    object Arbiter : TurretKind("arbiter",AdvancedStats.ARBITER,"ammo_arbiter_round","ammo_verdict_round")
+    object Fusion : TurretKind("fusion",AdvancedStats.FUSION,"ammo_fusion_fuel","ammo_high_energy_fusion",true)
+    object Acid : TurretKind("acid",AdvancedStats.ACID,"ammo_acid","ammo_strong_acid")
+    object Cryo : TurretKind("cryo",AdvancedStats.CRYO,"ammo_frost","ammo_absolute_zero")
+    object Emp : TurretKind("emp",AdvancedStats.EMP,"ammo_emp","ammo_advanced_emp")
+    object Graviton : TurretKind("graviton",AdvancedStats.GRAVITON,"ammo_graviton","ammo_singularity")
     companion object {
-        val ALL = listOf(Pulse,Particle,Grenade,Laser,Arc)
+        val ALL = listOf(Pulse,Particle,Grenade,Laser,Arc,Gravity,Railgun,Phase,Sniper,Arbiter,Fusion,Acid,Cryo,Emp,Graviton)
         fun byId(id: String) = ALL.firstOrNull { it.id == id }
     }
 }

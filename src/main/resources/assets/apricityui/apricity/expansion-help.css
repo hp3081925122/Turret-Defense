@@ -1,0 +1,18 @@
+/* 独立页面沿用机器界面的尺寸，内容超出视口时在面板内滚动。 */
+body.turret_help_screen { margin: 0; width: 100vw; height: 100vh; }
+#turret_help { width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; background: rgba(7, 12, 18, 0.68); color: #eeeeee; font-size: 16px; line-height: 1.5; --aui-slot-size: 28; --aui-slot-icon-scale: 1.5; }
+#turret_help .panel { width: 720px; max-width: 94vw; height: min(680px, 94vh); min-height: 0; box-sizing: border-box; overflow-y: auto; padding: 18px; background-color: #19212c; border: 2px solid #788895; }
+#turret_help h1 { font-size: 24px; color: #7fdbd0; margin: 5px 0; }
+#turret_help h2 { font-size: 20px; color: #bce7e2; margin: 0 0 8px; }
+#turret_help .navigation { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+#turret_help button { min-height: 28px; font-size: 16px; padding: 6px 10px; color: #ffffff; background-color: #4a586a; border: 1px solid #8994a2; }
+#turret_help button:hover { background-color: #5b7185; }
+#turret_help .notice { display: block; margin: 10px 0; padding: 10px; border: 1px solid #547980; background-color: #263942; white-space: pre-wrap; }
+#turret_help .guide_section { display: block; padding: 12px 0; border-bottom: 1px solid #485362; }
+#turret_help .guide_text { display: block; white-space: pre-wrap; word-break: break-all; }
+#turret_help .hint { display: block; font-size: 14px; color: #bfc9d4; white-space: pre-wrap; margin: 8px 0; }
+#turret_help .face_picker { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+@media (max-width: 700px) {
+    #turret_help .panel { width: 94vw; padding: 12px; }
+    #turret_help .navigation { gap: 8px; }
+}

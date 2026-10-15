@@ -28,6 +28,7 @@ object Combat {
         TurretKind.Grenade -> BallisticBehavior
         TurretKind.Laser -> ContinuousBeamBehavior
         TurretKind.Arc -> ChainBehavior
+        else -> AdvancedAttacks
     }
     fun shieldEffect(head: TurretHeadBlockEntity) { (head.level as? ServerLevel)?.let { EffectBatch.line(it,6,head.center,head.center) } }
     fun destroyEffect(head: TurretHeadBlockEntity) { (head.level as? ServerLevel)?.let { EffectBatch.line(it,5,head.center,head.center) }; head.boundBase?.sound(net.minecraft.sounds.SoundEvents.GENERIC_EXPLODE) }
@@ -47,6 +48,7 @@ object Combat {
         for (entity in entities) {
             if (hits >= TurretStatsTable.MAX_BLAST_TARGETS) break
             if (!entity.isAlive || entity.isRemoved || entity.isSpectator || (entity is Player && entity.isCreative)) continue
+            if (source.head?.boundBase?.core != null && entity is net.minecraft.world.entity.Mob && !com.turretdefense.targeting.TargetingRules.matches(source.head,entity)) continue
             val square = entity.distanceToSqr(center)
             if (square >= radius*radius) continue
             val falloff = (1.0-sqrt(square)/radius).coerceIn(0.0,1.0)

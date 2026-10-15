@@ -12,7 +12,7 @@ object Config {
     val maxBases = integer("maxBasesPerCore",32,8,64,"每个核心最多管理的底座数量")
     val scanInterval = integer("scanIntervalTicks",20,10,40,"集中扫描基础间隔，单位为游戏刻")
     val scanRadiusCap = integer("scanRadiusCap",128,16,128,"扫描半径上限，默认保留完整的128格")
-    val scanVerticalRange = integer("scanVerticalRange",64,16,128,"核心上下扫描范围")
+    val scanVerticalRange = integer("scanVerticalRange",128,16,128,"核心上下扫描范围；默认保持完整球形范围")
     val scanBudget = decimal("scanCostBudgetMs",3.0,0.1,100.0,"扫描耗时超过此值时自动降频")
     val highLoad = integer("highLoadEntityCount",150,1,10000,"实体数量超过此值时降低扫描频率")
     val lowLoad = integer("lowLoadEntityCount",50,0,9999,"实体数量低于此值时恢复扫描频率")

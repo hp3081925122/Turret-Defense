@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "minecraft:item/ender_pearl"
+    "layer0": "turretdefense:item/module_target_priority"
   }
 }

@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "minecraft:item/sugar"
+    "layer0": "turretdefense:item/module_fire_rate_1"
   }
 }

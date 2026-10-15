@@ -5,6 +5,16 @@
     "turretdefense:ammo_particle_clip",
     "turretdefense:ammo_grenade",
     "turretdefense:ammo_arc_cell",
-    "turretdefense:ammo_decider"
+    "turretdefense:ammo_decider",
+    "turretdefense:ammo_gravity_shell",
+    "turretdefense:ammo_rail_slug",
+    "turretdefense:ammo_phase_round",
+    "turretdefense:ammo_sniper_round",
+    "turretdefense:ammo_arbiter_round",
+    "turretdefense:ammo_fusion_fuel",
+    "turretdefense:ammo_acid",
+    "turretdefense:ammo_frost",
+    "turretdefense:ammo_emp",
+    "turretdefense:ammo_graviton"
   ]
 }

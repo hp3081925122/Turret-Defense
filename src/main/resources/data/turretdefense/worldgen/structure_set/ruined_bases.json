@@ -1,0 +1,15 @@
+{
+  "structures": [
+    {
+      "structure": "turretdefense:ruined_base",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 48,
+    "separation": 16,
+    "salt": 784129,
+    "spread_type": "linear"
+  }
+}

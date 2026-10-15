@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " R ",
+    "ICI",
+    " M "
+  ],
+  "key": {
+    "R": {
+      "tag": "forge:dusts/redstone"
+    },
+    "I": {
+      "tag": "forge:ingots/iron"
+    },
+    "C": {
+      "item": "minecraft:gold_ingot"
+    },
+    "M": {
+      "item": "minecraft:prismarine_shard"
+    }
+  },
+  "result": {
+    "item": "turretdefense:module_piercing_round",
+    "count": 1
+  }
+}

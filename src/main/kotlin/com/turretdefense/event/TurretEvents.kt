@@ -8,7 +8,7 @@ import com.turretdefense.network.*
 import com.turretdefense.targeting.TurretAttackGoal
 import com.turretdefense.ui.*
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.world.entity.monster.Monster
+import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.projectile.*
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.level.Explosion
@@ -38,12 +38,13 @@ object TurretEvents {
         if (event.phase == TickEvent.Phase.START) {
             runtime.navigation.beginTick()
             val start = System.nanoTime(); runtime.scheduler.tick(world.gameTime); runtime.recordNanos(start)
-        } else { val start = System.nanoTime(); EffectBatch.flush(world); runtime.recordNanos(start); runtime.finishTick() }
+        } else { val start = System.nanoTime(); EffectBatch.flush(world); AimUpdates.flush(world); runtime.recordNanos(start); runtime.finishTick() }
     }
-    @SubscribeEvent fun unload(event: LevelEvent.Unload) { (event.level as? ServerLevel)?.let { EffectBatch.clear(it); LevelRuntime.unload(it) } }
-    @SubscribeEvent fun stopped(event: ServerStoppedEvent) { LevelRuntime.clearAll(); EffectBatch.clearAll(); LootRouting.clear(); UiNetwork.clear() }
+    @SubscribeEvent fun unload(event: LevelEvent.Unload) { (event.level as? ServerLevel)?.let { EffectBatch.clear(it); AimUpdates.clear(it); LevelRuntime.unload(it) } }
+    @SubscribeEvent fun stopped(event: ServerStoppedEvent) { LevelRuntime.clearAll(); EffectBatch.clearAll(); AimUpdates.clearAll(); LootRouting.clear(); UiNetwork.clear() }
     @SubscribeEvent fun join(event: EntityJoinLevelEvent) {
-        if (!event.level.isClientSide && event.entity is Monster) (event.entity as Monster).goalSelector.addGoal(5,TurretAttackGoal(event.entity as Monster))
+        val mob = event.entity as? Mob ?: return
+        if (!event.level.isClientSide && mob.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE) != null) mob.goalSelector.addGoal(2,TurretAttackGoal(mob))
     }
     @SubscribeEvent(priority=EventPriority.LOWEST) fun death(event: LivingDeathEvent) = LootRouting.death(event)
     @SubscribeEvent(priority=EventPriority.LOWEST) fun drops(event: LivingDropsEvent) = LootRouting.drops(event)
@@ -85,6 +86,6 @@ object TurretEvents {
             is ShulkerBullet -> 4.0
             else -> 0.0
         }
-        if (entity is TurretHeadBlockEntity) entity.takeDamage(damage) else (entity as BaseCoreBlockEntity).takeDamage(damage)
+        if (entity is TurretHeadBlockEntity) entity.takeDamage(damage,projectile.owner as? net.minecraft.world.entity.LivingEntity) else (entity as BaseCoreBlockEntity).takeDamage(damage)
     }
 }

@@ -1,0 +1,21 @@
+{
+  "replace": false,
+  "values": [
+    "turretdefense:core_module_capacity",
+    "turretdefense:core_module_generation_1",
+    "turretdefense:core_module_generation_2",
+    "turretdefense:core_module_range_1",
+    "turretdefense:core_module_range_2",
+    "turretdefense:core_module_wireless",
+    "turretdefense:core_module_judgment",
+    "turretdefense:core_module_antiair_1",
+    "turretdefense:core_module_antiair_2",
+    "turretdefense:core_module_antiair_3",
+    "turretdefense:core_module_shield_1",
+    "turretdefense:core_module_shield_2",
+    "turretdefense:core_module_shield_3",
+    "turretdefense:core_module_repair_1",
+    "turretdefense:core_module_repair_2",
+    "turretdefense:core_module_repair_3"
+  ]
+}

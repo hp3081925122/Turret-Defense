@@ -1,0 +1,154 @@
+{
+  "variants": {
+    "facing=down,tier=1": {
+      "model": "turretdefense:block/acid_head_t1",
+      "x": 0,
+      "y": 0
+    },
+    "facing=up,tier=1": {
+      "model": "turretdefense:block/acid_head_t1",
+      "x": 180,
+      "y": 0
+    },
+    "facing=south,tier=1": {
+      "model": "turretdefense:block/acid_head_t1",
+      "x": 90,
+      "y": 0
+    },
+    "facing=north,tier=1": {
+      "model": "turretdefense:block/acid_head_t1",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west,tier=1": {
+      "model": "turretdefense:block/acid_head_t1",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,tier=1": {
+      "model": "turretdefense:block/acid_head_t1",
+      "x": 90,
+      "y": 270
+    },
+    "facing=down,tier=2": {
+      "model": "turretdefense:block/acid_head_t2",
+      "x": 0,
+      "y": 0
+    },
+    "facing=up,tier=2": {
+      "model": "turretdefense:block/acid_head_t2",
+      "x": 180,
+      "y": 0
+    },
+    "facing=south,tier=2": {
+      "model": "turretdefense:block/acid_head_t2",
+      "x": 90,
+      "y": 0
+    },
+    "facing=north,tier=2": {
+      "model": "turretdefense:block/acid_head_t2",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west,tier=2": {
+      "model": "turretdefense:block/acid_head_t2",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,tier=2": {
+      "model": "turretdefense:block/acid_head_t2",
+      "x": 90,
+      "y": 270
+    },
+    "facing=down,tier=3": {
+      "model": "turretdefense:block/acid_head_t3",
+      "x": 0,
+      "y": 0
+    },
+    "facing=up,tier=3": {
+      "model": "turretdefense:block/acid_head_t3",
+      "x": 180,
+      "y": 0
+    },
+    "facing=south,tier=3": {
+      "model": "turretdefense:block/acid_head_t3",
+      "x": 90,
+      "y": 0
+    },
+    "facing=north,tier=3": {
+      "model": "turretdefense:block/acid_head_t3",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west,tier=3": {
+      "model": "turretdefense:block/acid_head_t3",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,tier=3": {
+      "model": "turretdefense:block/acid_head_t3",
+      "x": 90,
+      "y": 270
+    },
+    "facing=down,tier=4": {
+      "model": "turretdefense:block/acid_head_t4",
+      "x": 0,
+      "y": 0
+    },
+    "facing=up,tier=4": {
+      "model": "turretdefense:block/acid_head_t4",
+      "x": 180,
+      "y": 0
+    },
+    "facing=south,tier=4": {
+      "model": "turretdefense:block/acid_head_t4",
+      "x": 90,
+      "y": 0
+    },
+    "facing=north,tier=4": {
+      "model": "turretdefense:block/acid_head_t4",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west,tier=4": {
+      "model": "turretdefense:block/acid_head_t4",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,tier=4": {
+      "model": "turretdefense:block/acid_head_t4",
+      "x": 90,
+      "y": 270
+    },
+    "facing=down,tier=5": {
+      "model": "turretdefense:block/acid_head_t5",
+      "x": 0,
+      "y": 0
+    },
+    "facing=up,tier=5": {
+      "model": "turretdefense:block/acid_head_t5",
+      "x": 180,
+      "y": 0
+    },
+    "facing=south,tier=5": {
+      "model": "turretdefense:block/acid_head_t5",
+      "x": 90,
+      "y": 0
+    },
+    "facing=north,tier=5": {
+      "model": "turretdefense:block/acid_head_t5",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west,tier=5": {
+      "model": "turretdefense:block/acid_head_t5",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,tier=5": {
+      "model": "turretdefense:block/acid_head_t5",
+      "x": 90,
+      "y": 270
+    }
+  }
+}
